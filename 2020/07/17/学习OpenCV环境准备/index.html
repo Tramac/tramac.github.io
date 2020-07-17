@@ -12,23 +12,25 @@
 
 <link rel="stylesheet" href="/css/main.css">
 
-
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|0.8:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
 <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-loading-bar.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="OpenCV配置由于我的Ubuntu 16.04不知道什么时候已经安装了OpenCV，所以这里省略了安装过程。注意的是我的OpenCV应该不是按照官网的编译方式安装的，应该是之前有一些环境配置时所需依赖时以其他的方式安装的。  使用vs code编译OpenCV程序  在vs code编译器中，用简单的读取图片的代码测试，运行时出现下面错误： 123456789&#x2F;tmp&#x2F;cc9">
+  <meta name="description" content="OpenCV配置由于我的Ubuntu 16.04不知道什么时候已经安装了OpenCV，所以这里省略了安装过程。注意的是我的OpenCV应该不是按照官网的编译方式安装的，应该是之前有一些环境配置时所需依赖时以其他的方式安装的。  使用vs code编译OpenCV程序  在vs code编译器中，用简单的读取图片的代码测试，运行时出现下面错误： 123456789&#x2F;tmp&#x2F;cc9zYXpi.o: I">
 <meta property="og:type" content="article">
 <meta property="og:title" content="学习OpenCV环境准备">
 <meta property="og:url" content="http://yoursite.com/2020/07/17/%E5%AD%A6%E4%B9%A0OpenCV%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/index.html">
-<meta property="og:site_name" content="Tramac">
-<meta property="og:description" content="OpenCV配置由于我的Ubuntu 16.04不知道什么时候已经安装了OpenCV，所以这里省略了安装过程。注意的是我的OpenCV应该不是按照官网的编译方式安装的，应该是之前有一些环境配置时所需依赖时以其他的方式安装的。  使用vs code编译OpenCV程序  在vs code编译器中，用简单的读取图片的代码测试，运行时出现下面错误： 123456789&#x2F;tmp&#x2F;cc9">
+<meta property="og:site_name" content="Tramac&#39;s Space">
+<meta property="og:description" content="OpenCV配置由于我的Ubuntu 16.04不知道什么时候已经安装了OpenCV，所以这里省略了安装过程。注意的是我的OpenCV应该不是按照官网的编译方式安装的，应该是之前有一些环境配置时所需依赖时以其他的方式安装的。  使用vs code编译OpenCV程序  在vs code编译器中，用简单的读取图片的代码测试，运行时出现下面错误： 123456789&#x2F;tmp&#x2F;cc9zYXpi.o: I">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-07-17T06:17:51.812Z">
-<meta property="article:modified_time" content="2020-07-17T06:17:51.812Z">
+<meta property="article:modified_time" content="2020-07-17T08:30:29.244Z">
 <meta property="article:author" content="Tramac">
 <meta name="twitter:card" content="summary">
 
@@ -45,7 +47,7 @@
   };
 </script>
 
-  <title>学习OpenCV环境准备 | Tramac</title>
+  <title>学习OpenCV环境准备 | Tramac's Space</title>
   
 
 
@@ -76,12 +78,18 @@
   </style>
 </noscript>
 
-<link rel="alternate" href="/atom.xml" title="Tramac" type="application/atom+xml">
+<link rel="alternate" href="/atom.xml" title="Tramac's Space" type="application/atom+xml">
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
     <div class="headband"></div>
+    <a href="https://github.com/tramac" target="_blank" rel="noopener">
+    <img style="position: absolute; top: 0; right: 0; border: 0;"
+      src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" 
+      alt="Fork me on GitHub" 
+      data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
+    </a>
 
     <header class="header" itemscope itemtype="http://schema.org/WPHeader">
       <div class="header-inner"><div class="site-brand-container">
@@ -97,13 +105,15 @@
 
     <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">Tramac</h1>
+      <h1 class="site-title">Tramac's Space</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
+      <p class="site-subtitle" itemprop="description">Keep trying</p>
   </div>
 
   <div class="site-nav-right">
     <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
   </div>
 </div>
@@ -143,11 +153,38 @@
     <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
 
   </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 </nav>
 
 
 
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
 
 </div>
     </header>
@@ -176,7 +213,7 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Tramac">
+      <meta itemprop="name" content="Tramac's Space">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
@@ -189,11 +226,19 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2020-07-17 14:17:51" itemprop="dateCreated datePublished" datetime="2020-07-17T14:17:51+08:00">2020-07-17</time>
+              <time title="创建时间：2020-07-17 14:17:51 / 修改时间：16:30:29" itemprop="dateCreated datePublished" datetime="2020-07-17T14:17:51+08:00">2020-07-17</time>
             </span>
 
           
+            <span id="/2020/07/17/%E5%AD%A6%E4%B9%A0OpenCV%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/" class="post-meta-item leancloud_visitors" data-flag-title="学习OpenCV环境准备" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
 
         </div>
       </header>
@@ -209,7 +254,7 @@
 <li>使用vs code编译OpenCV程序</li>
 </ul>
 <p>在vs code编译器中，用简单的读取图片的代码测试，运行时出现下面错误：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;tmp&#x2F;cc9zYXpi.o: In function &#39;main&#39;:</span><br><span class="line">&#x2F;home&#x2F;xxx&#x2F;c++&#x2F;main.cpp:5: undefined reference to &#39;cvLoadImage&#39;</span><br><span class="line">&#x2F;home&#x2F;xxx&#x2F;c++&#x2F;main.cpp:6: undefined reference to &#39;cvNamedWindow&#39;</span><br><span class="line">&#x2F;home&#x2F;xxx&#x2F;c++&#x2F;main.cpp:7: undefined reference to &#39;cvShowImage&#39;</span><br><span class="line">&#x2F;home&#x2F;xxx&#x2F;c++&#x2F;main.cpp:8: undefined reference to &#39;cvWaitKey&#39;</span><br><span class="line">&#x2F;home&#x2F;xxx&#x2F;c++&#x2F;main.cpp:9: undefined reference to &#39;cvReleaseImage&#39;</span><br><span class="line">&#x2F;home&#x2F;xxx&#x2F;c++&#x2F;main.cpp:10: undefined reference to &#39;cvDestroyWindow&#39;</span><br><span class="line">collect2: error: ld returned 1 exit status</span><br><span class="line">The terminal process terminated with exit code: 1</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">/tmp/cc9zYXpi.o: In function 'main':</span><br><span class="line">/home/xxx/c++/main.cpp:5: undefined reference to 'cvLoadImage'</span><br><span class="line">/home/xxx/c++/main.cpp:6: undefined reference to 'cvNamedWindow'</span><br><span class="line">/home/xxx/c++/main.cpp:7: undefined reference to 'cvShowImage'</span><br><span class="line">/home/xxx/c++/main.cpp:8: undefined reference to 'cvWaitKey'</span><br><span class="line">/home/xxx/c++/main.cpp:9: undefined reference to 'cvReleaseImage'</span><br><span class="line">/home/xxx/c++/main.cpp:10: undefined reference to 'cvDestroyWindow'</span><br><span class="line">collect2: error: ld returned 1 exit status</span><br><span class="line">The terminal process terminated with exit code: 1</span><br></pre></td></tr></table></figure>
 
 
 
@@ -218,11 +263,11 @@
 <li>一种在终端编译的方式</li>
 </ul>
 <p>在vs code中由于设置的问题出现报错，那有一种通用的方式是在终端输入命令行完成编译。命令行如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">g++ main.cpp -o main_out &#96;pkg-config --cflags --libs opencv&#96;</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">g++ main.cpp -o main_out `pkg-config --cflags --libs opencv`</span><br></pre></td></tr></table></figure>
 
 <p><strong>注意</strong>：这里是`而不是‘，否则无法编译成功。</p>
 <p><code>pkg-config</code>可用于列举某个库的相关信息，比如此库的路径/相关头文件等。比如：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">~$ pkg-config --cflags opencv</span><br><span class="line">-I&#x2F;usr&#x2F;include&#x2F;opencv</span><br><span class="line"></span><br><span class="line">~$ pkg-config --libs opencv</span><br><span class="line">&#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_calib3d.so -lopencv_calib3d &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_contrib.so -lopencv_contrib &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_core.so -lopencv_core &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_features2d.so -lopencv_features2d &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_flann.so -lopencv_flann &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_gpu.so -lopencv_gpu &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_highgui.so -lopencv_highgui &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_imgproc.so -lopencv_imgproc &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_legacy.so -lopencv_legacy &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_ml.so -lopencv_ml &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_objdetect.so -lopencv_objdetect &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_ocl.so -lopencv_ocl &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_photo.so -lopencv_photo &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_stitching.so -lopencv_stitching &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_superres.so -lopencv_superres &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_ts.so -lopencv_ts &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_video.so -lopencv_video &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libopencv_videostab.so -lopencv_videostab</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">~$ pkg-config --cflags opencv</span><br><span class="line">-I/usr/include/opencv</span><br><span class="line"></span><br><span class="line">~$ pkg-config --libs opencv</span><br><span class="line">/usr/lib/x86_64-linux-gnu/libopencv_calib3d.so -lopencv_calib3d /usr/lib/x86_64-linux-gnu/libopencv_contrib.so -lopencv_contrib /usr/lib/x86_64-linux-gnu/libopencv_core.so -lopencv_core /usr/lib/x86_64-linux-gnu/libopencv_features2d.so -lopencv_features2d /usr/lib/x86_64-linux-gnu/libopencv_flann.so -lopencv_flann /usr/lib/x86_64-linux-gnu/libopencv_gpu.so -lopencv_gpu /usr/lib/x86_64-linux-gnu/libopencv_highgui.so -lopencv_highgui /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so -lopencv_imgproc /usr/lib/x86_64-linux-gnu/libopencv_legacy.so -lopencv_legacy /usr/lib/x86_64-linux-gnu/libopencv_ml.so -lopencv_ml /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so -lopencv_objdetect /usr/lib/x86_64-linux-gnu/libopencv_ocl.so -lopencv_ocl /usr/lib/x86_64-linux-gnu/libopencv_photo.so -lopencv_photo /usr/lib/x86_64-linux-gnu/libopencv_stitching.so -lopencv_stitching /usr/lib/x86_64-linux-gnu/libopencv_superres.so -lopencv_superres /usr/lib/x86_64-linux-gnu/libopencv_ts.so -lopencv_ts /usr/lib/x86_64-linux-gnu/libopencv_video.so -lopencv_video /usr/lib/x86_64-linux-gnu/libopencv_videostab.so -lopencv_videostab</span><br></pre></td></tr></table></figure>
 
 
 
@@ -234,7 +279,7 @@
 <blockquote>
 <p>1.新建文件夹LearningOpenCV<br>2.在根目录下新建.vscode文件夹，并在该文件夹下新建launch.json,settings.json,tasks.json三个设置文件<br>3.其中launch.json,settings.json的设置可以参考其他，重要的是tasks.json中args参数的设置，这个是默认指令的设置。我的tasks.json设置如下：</p>
 </blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; See https:&#x2F;&#x2F;go.microsoft.com&#x2F;fwlink&#x2F;?LinkId&#x3D;733558</span><br><span class="line">    &#x2F;&#x2F; for the documentation about the tasks.json format</span><br><span class="line">    &quot;version&quot;: &quot;2.0.0&quot;,</span><br><span class="line">    &quot;tasks&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;label&quot;: &quot;build&quot;,</span><br><span class="line">            &quot;type&quot;: &quot;shell&quot;,</span><br><span class="line">            &quot;command&quot;: &quot;g++&quot;,</span><br><span class="line">            &quot;args&quot;:[&quot;-g&quot;,&quot;$&#123;workspaceRoot&#125;&#x2F;main.cpp&quot;,&quot;-o&quot;,&quot;main_test.out&quot;,&quot;&#96;pkg-config&quot;,&quot;--cflags&quot;,&quot;--libs&quot;,&quot;opencv&#96;&quot;],</span><br><span class="line">            &quot;presentation&quot;: &#123;</span><br><span class="line">                &quot;reveal&quot;: &quot;always&quot;,</span><br><span class="line">                &quot;panel&quot;: &quot;new&quot;</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;problemMatcher&quot;:</span><br><span class="line">            &#123;</span><br><span class="line">                &quot;owner&quot;: &quot;cpp&quot;,</span><br><span class="line">                &quot;fileLocation&quot;:[&quot;relative&quot;, &quot;$&#123;workspaceRoot&#125;&quot;],</span><br><span class="line">                &quot;pattern&quot;:[</span><br><span class="line">                    &#123;</span><br><span class="line">                        &quot;regexp&quot;: &quot;^([^\\\\s].*)\\\\((\\\\d+,\\\\d+)\\\\):\\\\s*(.*)$&quot;,</span><br><span class="line">                        &quot;file&quot;: 1,</span><br><span class="line">                        &quot;line&quot;: 2,</span><br><span class="line">                        &quot;column&quot;: 3,</span><br><span class="line">                        &quot;severity&quot;: 4,</span><br><span class="line">                        &quot;location&quot;: 2,</span><br><span class="line">                        &quot;message&quot;: 5</span><br><span class="line">                    &#125;</span><br><span class="line">                ]</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="comment">// See https://go.microsoft.com/fwlink/?LinkId=733558</span></span><br><span class="line">    <span class="comment">// for the documentation about the tasks.json format</span></span><br><span class="line">    <span class="string">"version"</span>: <span class="string">"2.0.0"</span>,</span><br><span class="line">    <span class="string">"tasks"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">"label"</span>: <span class="string">"build"</span>,</span><br><span class="line">            <span class="string">"type"</span>: <span class="string">"shell"</span>,</span><br><span class="line">            <span class="string">"command"</span>: <span class="string">"g++"</span>,</span><br><span class="line">            <span class="string">"args"</span>:[<span class="string">"-g"</span>,<span class="string">"$&#123;workspaceRoot&#125;/main.cpp"</span>,<span class="string">"-o"</span>,<span class="string">"main_test.out"</span>,<span class="string">"`pkg-config"</span>,<span class="string">"--cflags"</span>,<span class="string">"--libs"</span>,<span class="string">"opencv`"</span>],</span><br><span class="line">            <span class="string">"presentation"</span>: &#123;</span><br><span class="line">                <span class="string">"reveal"</span>: <span class="string">"always"</span>,</span><br><span class="line">                <span class="string">"panel"</span>: <span class="string">"new"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">"problemMatcher"</span>:</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="string">"owner"</span>: <span class="string">"cpp"</span>,</span><br><span class="line">                <span class="string">"fileLocation"</span>:[<span class="string">"relative"</span>, <span class="string">"$&#123;workspaceRoot&#125;"</span>],</span><br><span class="line">                <span class="string">"pattern"</span>:[</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="string">"regexp"</span>: <span class="string">"^([^\\\\s].*)\\\\((\\\\d+,\\\\d+)\\\\):\\\\s*(.*)$"</span>,</span><br><span class="line">                        <span class="string">"file"</span>: <span class="number">1</span>,</span><br><span class="line">                        <span class="string">"line"</span>: <span class="number">2</span>,</span><br><span class="line">                        <span class="string">"column"</span>: <span class="number">3</span>,</span><br><span class="line">                        <span class="string">"severity"</span>: <span class="number">4</span>,</span><br><span class="line">                        <span class="string">"location"</span>: <span class="number">2</span>,</span><br><span class="line">                        <span class="string">"message"</span>: <span class="number">5</span></span><br><span class="line">                    &#125;</span><br><span class="line">                ]</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>可以看到tasks.json中的args参数正是我们上面说到的终端指令。<br><strong>注意</strong>：由于args的参数设置时不能包含空格，所以<code>pkg-config --cflags --libs opencv</code>需要不同的引号分开，同时`注意不要搞错或者忘记。<br>到此为止，vs code的OpenCV编译环境已经完成了，接下来就在Ubuntu下面开始OpenCV的学习吧！</p>
 
@@ -243,6 +288,35 @@
     
     
     
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/images/wechat_channel.jpg">
+            <span class="icon">
+              <i class="fab fa-weixin"></i>
+            </span>
+
+            <span class="label">WeChat</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
 
       <footer class="post-footer">
 
@@ -337,11 +411,21 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
   </nav>
 </div>
   <div class="links-of-author motion-element">
       <span class="links-of-author-item">
-        <a href="https://github.com/Tramac" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Tramac" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+        <a href="https://github.com/Tramac" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Tramac" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/qia-ka-ka-23" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;qia-ka-ka-23" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:tramac@yeah.net" title="E-Mail → mailto:tramac@yeah.net" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
       </span>
   </div>
 
@@ -376,8 +460,6 @@
   </span>
   <span class="author" itemprop="copyrightHolder">Tramac</span>
 </div>
-  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
-  </div>
 
         
 
@@ -386,6 +468,92 @@
 
 
 
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              leancloudSelector(url).innerText = 'Counter not initialized! More info at console err msg.';
+              console.error('ATTENTION! LeanCloud counter has security bug, see how to solve it here: https://github.com/theme-next/hexo-leancloud-counter-security. \n However, you can still use LeanCloud without security, by setting `security` option to `false`.');
+            
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"EwM0rzNJJvrzOMGM9QtRQabg-gzGzoHsz","app_key":"Cgarq2zhnKAf5zzYVctu26G2","server_url":null,"security":true};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
 
 
       </div>
@@ -415,6 +583,10 @@
 
 
 
+  
+<script src="/js/local-search.js"></script>
+
+
 
 
 
@@ -430,5 +602,7 @@
 
   
 
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次</span>
 </body>
 </html>
