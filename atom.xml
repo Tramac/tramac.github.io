@@ -3,11 +3,11 @@
   <title>Tramac&#39;s Space</title>
   
   <subtitle>Keep trying</subtitle>
-  <link href="/atom.xml" rel="self"/>
+  <link href="/blog/atom.xml" rel="self"/>
   
-  <link href="http://yoursite.com/"/>
+  <link href="http://tramac.github.io/"/>
   <updated>2020-07-17T08:21:25.716Z</updated>
-  <id>http://yoursite.com/</id>
+  <id>http://tramac.github.io/</id>
   
   <author>
     <name>Tramac</name>
@@ -18,12 +18,12 @@
   
   <entry>
     <title>并行训练-PyTorch</title>
-    <link href="http://yoursite.com/2020/07/17/%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83-PyTorch/"/>
-    <id>http://yoursite.com/2020/07/17/%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83-PyTorch/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83-PyTorch/"/>
+    <id>http://tramac.github.io/2020/07/17/%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83-PyTorch/</id>
     <published>2020-07-17T06:29:56.839Z</published>
     <updated>2020-07-17T08:21:25.716Z</updated>
     
-    <content type="html"><![CDATA[<p>当我们的设备具有多个GPUs时，为了训练加速，我们通常会选用多卡并行训练，常见的并行训练方式有数据并行和模型并行。而PyTorch中也给我们提供了数据并行的接口<a href="https://github.com/pytorch/pytorch/blob/master/torch/nn/parallel/data_parallel.py" target="_blank" rel="noopener">DataParalle</a>。本文将对该并行过程做一个简单的总结。</p><h4 id="1-数据并行示意图"><a href="#1-数据并行示意图" class="headerlink" title="1. 数据并行示意图"></a>1. 数据并行示意图</h4><p><a href="https://tramac.github.io/2019/03/29/Pytorch并行训练/singleGPU.png" target="_blank" rel="noopener"><img src="https://tramac.github.io/2019/03/29/Pytorch%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83/singleGPU.png" alt="img"></a></p><p><a href="https://tramac.github.io/2019/03/29/Pytorch并行训练/parallelmodel.png" target="_blank" rel="noopener"><img src="https://tramac.github.io/2019/03/29/Pytorch%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83/parallelmodel.png" alt="img"></a></p><p><a href="https://tramac.github.io/2019/03/29/Pytorch并行训练/multiGPU.png" target="_blank" rel="noopener"><img src="https://tramac.github.io/2019/03/29/Pytorch%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83/multiGPU.png" alt="img"></a></p><p> (a) single GPU (b) parallel model (c) parallel citerion</p><h4 id="2-DataParallel过程分析"><a href="#2-DataParallel过程分析" class="headerlink" title="2. DataParallel过程分析"></a>2. DataParallel过程分析</h4><p>本文将通过分析PyTorch中<a href="https://github.com/pytorch/pytorch/blob/master/torch/nn/parallel/data_parallel.py" target="_blank" rel="noopener">DataParallel</a>源码的方式对并行过程展开讨论。Note:本文中只展示核心代码</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataParallel</span><span class="params">(Module)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, module, device_ids=None, output_device=None, dim=<span class="number">0</span>)</span>:</span></span><br><span class="line">        super(DataParallel, self).__init__()</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span><span class="params">(self, *inputs, **kwargs)</span>:</span></span><br><span class="line">        <span class="comment"># 1.将输入batch data分解</span></span><br><span class="line">        inputs, kwargs = self.scatter(inputs, kwargs, self.device_ids)</span><br><span class="line">        <span class="comment"># 2.将model在每个GPU上各复制一份</span></span><br><span class="line">        replicas = self.replicate(self.module, self.device_ids[:len(inputs)])</span><br><span class="line">        <span class="comment"># 3.进行并行前向计算</span></span><br><span class="line">        outputs = self.parallel_apply(replicas, inputs, kwargs)</span><br><span class="line">        <span class="comment"># 4.将分解后的计算结果重新聚集，合成为原始的batch大小</span></span><br><span class="line">        <span class="keyword">return</span> self.gather(outputs, self.output_device)</span><br></pre></td></tr></table></figure><p>数据并行的主要过程就是包括上面4个步骤，结合图1(b)来看更加直观。</p><h4 id="3-DataParallelModel和DataParallelCriterion拓展"><a href="#3-DataParallelModel和DataParallelCriterion拓展" class="headerlink" title="3. DataParallelModel和DataParallelCriterion拓展"></a>3. DataParallelModel和DataParallelCriterion拓展</h4><p>在PyTorch官方提供的DataParallel接口中，是从输入x到输出y的过程，但是，在我们通常的训练过程中，我们还需要计算输入y与label之间的损失Loss，所以，为了加速到底，最好是将loss的计算也在过个GPU上进行。<a href="https://github.com/Tramac/Awesome-semantic-segmentation-pytorch/blob/master/utils/parallel.py" target="_blank" rel="noopener">DataParallelCriterion</a>的过程主要参考了<a href="https://github.com/zhanghang1989/PyTorch-Encoding" target="_blank" rel="noopener">PyTorch-Encoding</a>中的代码，代码质量很高，强烈推荐一波:+1:</p><p>在DataParallelCriterion之前，我们首先需要对原始的DataParallel进行修改，即返回结果时不让其执行gather聚集过程，因为我们接下来还要在每个分解batch上继续计算loss。</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataParallelModel</span><span class="params">(DataParallel)</span>:</span></span><br><span class="line">    <span class="comment"># 修改gather过程，使其直接返回</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">gather</span><span class="params">(self, outputs, output_device)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> outputs</span><br></pre></td></tr></table></figure><p>为了并行计算loss，主要的不同是需要将batch label同样划分为多个子batch。如下：</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataParallelCriterion</span><span class="params">(DataParallel)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span><span class="params">(self, inputs, *targets, **kwargs)</span>:</span></span><br><span class="line">        <span class="comment"># 对label进行分解</span></span><br><span class="line">        targets, kwargs = self.scatter(targets, kwargs, self.device_ids)</span><br><span class="line">        <span class="comment"># 将model在每个GPU上各复制一份</span></span><br><span class="line">        replicas = self.replicate(self.module, self.device_ids[:len(inputs)])</span><br><span class="line">        <span class="comment"># 执行前向计算，具体函数在这里不做展示，详细可见链接内容</span></span><br><span class="line">        outputs = criterion_parallel_apply(replicas, inputs, targets, kwargs)</span><br><span class="line">        <span class="keyword">return</span> Reduce.apply(*outputs) / len(outputs)</span><br></pre></td></tr></table></figure><p>整个并行训练过程如上所述，可结合图1(c)理解。</p><h4 id="3-并行训练中的注意事项"><a href="#3-并行训练中的注意事项" class="headerlink" title="3. 并行训练中的注意事项"></a>3. 并行训练中的注意事项</h4><ul><li>所有的划分都是在batch维度进行</li><li>batch size必须大于GPUs的数量，最好是保证是其数量的整数倍</li></ul><h4 id="4-References"><a href="#4-References" class="headerlink" title="4. References"></a>4. References</h4><ul><li><a href="https://github.com/Tramac/Awesome-semantic-segmentation-pytorch" target="_blank" rel="noopener">Awesome-semantic-segmentation-pytorch</a></li><li><a href="https://github.com/zhanghang1989/PyTorch-Encoding" target="_blank" rel="noopener">PyTorch-Encoding</a></li></ul>]]></content>
+    <content type="html"><![CDATA[<p>当我们的设备具有多个GPUs时，为了训练加速，我们通常会选用多卡并行训练，常见的并行训练方式有数据并行和模型并行。而PyTorch中也给我们提供了数据并行的接口<a href="https://github.com/pytorch/pytorch/blob/master/torch/nn/parallel/data_parallel.py" target="_blank" rel="noopener">DataParalle</a>。本文将对该并行过程做一个简单的总结。</p><h4 id="1-数据并行示意图"><a href="#1-数据并行示意图" class="headerlink" title="1. 数据并行示意图"></a>1. 数据并行示意图</h4><p><a href="https://tramac.github.io/2019/03/29/Pytorch并行训练/singleGPU.png"><img src="https://tramac.github.io/2019/03/29/Pytorch%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83/singleGPU.png" alt="img"></a></p><p><a href="https://tramac.github.io/2019/03/29/Pytorch并行训练/parallelmodel.png"><img src="https://tramac.github.io/2019/03/29/Pytorch%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83/parallelmodel.png" alt="img"></a></p><p><a href="https://tramac.github.io/2019/03/29/Pytorch并行训练/multiGPU.png"><img src="https://tramac.github.io/2019/03/29/Pytorch%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83/multiGPU.png" alt="img"></a></p><p> (a) single GPU (b) parallel model (c) parallel citerion</p><h4 id="2-DataParallel过程分析"><a href="#2-DataParallel过程分析" class="headerlink" title="2. DataParallel过程分析"></a>2. DataParallel过程分析</h4><p>本文将通过分析PyTorch中<a href="https://github.com/pytorch/pytorch/blob/master/torch/nn/parallel/data_parallel.py" target="_blank" rel="noopener">DataParallel</a>源码的方式对并行过程展开讨论。Note:本文中只展示核心代码</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataParallel</span><span class="params">(Module)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, module, device_ids=None, output_device=None, dim=<span class="number">0</span>)</span>:</span></span><br><span class="line">        super(DataParallel, self).__init__()</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span><span class="params">(self, *inputs, **kwargs)</span>:</span></span><br><span class="line">        <span class="comment"># 1.将输入batch data分解</span></span><br><span class="line">        inputs, kwargs = self.scatter(inputs, kwargs, self.device_ids)</span><br><span class="line">        <span class="comment"># 2.将model在每个GPU上各复制一份</span></span><br><span class="line">        replicas = self.replicate(self.module, self.device_ids[:len(inputs)])</span><br><span class="line">        <span class="comment"># 3.进行并行前向计算</span></span><br><span class="line">        outputs = self.parallel_apply(replicas, inputs, kwargs)</span><br><span class="line">        <span class="comment"># 4.将分解后的计算结果重新聚集，合成为原始的batch大小</span></span><br><span class="line">        <span class="keyword">return</span> self.gather(outputs, self.output_device)</span><br></pre></td></tr></table></figure><p>数据并行的主要过程就是包括上面4个步骤，结合图1(b)来看更加直观。</p><h4 id="3-DataParallelModel和DataParallelCriterion拓展"><a href="#3-DataParallelModel和DataParallelCriterion拓展" class="headerlink" title="3. DataParallelModel和DataParallelCriterion拓展"></a>3. DataParallelModel和DataParallelCriterion拓展</h4><p>在PyTorch官方提供的DataParallel接口中，是从输入x到输出y的过程，但是，在我们通常的训练过程中，我们还需要计算输入y与label之间的损失Loss，所以，为了加速到底，最好是将loss的计算也在过个GPU上进行。<a href="https://github.com/Tramac/Awesome-semantic-segmentation-pytorch/blob/master/utils/parallel.py" target="_blank" rel="noopener">DataParallelCriterion</a>的过程主要参考了<a href="https://github.com/zhanghang1989/PyTorch-Encoding" target="_blank" rel="noopener">PyTorch-Encoding</a>中的代码，代码质量很高，强烈推荐一波:+1:</p><p>在DataParallelCriterion之前，我们首先需要对原始的DataParallel进行修改，即返回结果时不让其执行gather聚集过程，因为我们接下来还要在每个分解batch上继续计算loss。</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataParallelModel</span><span class="params">(DataParallel)</span>:</span></span><br><span class="line">    <span class="comment"># 修改gather过程，使其直接返回</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">gather</span><span class="params">(self, outputs, output_device)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> outputs</span><br></pre></td></tr></table></figure><p>为了并行计算loss，主要的不同是需要将batch label同样划分为多个子batch。如下：</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataParallelCriterion</span><span class="params">(DataParallel)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span><span class="params">(self, inputs, *targets, **kwargs)</span>:</span></span><br><span class="line">        <span class="comment"># 对label进行分解</span></span><br><span class="line">        targets, kwargs = self.scatter(targets, kwargs, self.device_ids)</span><br><span class="line">        <span class="comment"># 将model在每个GPU上各复制一份</span></span><br><span class="line">        replicas = self.replicate(self.module, self.device_ids[:len(inputs)])</span><br><span class="line">        <span class="comment"># 执行前向计算，具体函数在这里不做展示，详细可见链接内容</span></span><br><span class="line">        outputs = criterion_parallel_apply(replicas, inputs, targets, kwargs)</span><br><span class="line">        <span class="keyword">return</span> Reduce.apply(*outputs) / len(outputs)</span><br></pre></td></tr></table></figure><p>整个并行训练过程如上所述，可结合图1(c)理解。</p><h4 id="3-并行训练中的注意事项"><a href="#3-并行训练中的注意事项" class="headerlink" title="3. 并行训练中的注意事项"></a>3. 并行训练中的注意事项</h4><ul><li>所有的划分都是在batch维度进行</li><li>batch size必须大于GPUs的数量，最好是保证是其数量的整数倍</li></ul><h4 id="4-References"><a href="#4-References" class="headerlink" title="4. References"></a>4. References</h4><ul><li><a href="https://github.com/Tramac/Awesome-semantic-segmentation-pytorch" target="_blank" rel="noopener">Awesome-semantic-segmentation-pytorch</a></li><li><a href="https://github.com/zhanghang1989/PyTorch-Encoding" target="_blank" rel="noopener">PyTorch-Encoding</a></li></ul>]]></content>
     
     <summary type="html">
     
@@ -40,12 +40,12 @@
   
   <entry>
     <title>跨卡同步 Batch Normalization[转]</title>
-    <link href="http://yoursite.com/2020/07/17/%E8%B7%A8%E5%8D%A1%E5%90%8C%E6%AD%A5%20Batch%20Normalization[%E8%BD%AC]/"/>
-    <id>http://yoursite.com/2020/07/17/%E8%B7%A8%E5%8D%A1%E5%90%8C%E6%AD%A5%20Batch%20Normalization[%E8%BD%AC]/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E8%B7%A8%E5%8D%A1%E5%90%8C%E6%AD%A5%20Batch%20Normalization[%E8%BD%AC]/"/>
+    <id>http://tramac.github.io/2020/07/17/%E8%B7%A8%E5%8D%A1%E5%90%8C%E6%AD%A5%20Batch%20Normalization[%E8%BD%AC]/</id>
     <published>2020-07-17T06:29:12.187Z</published>
     <updated>2020-07-17T06:29:12.187Z</updated>
     
-    <content type="html"><![CDATA[<p>作者：<a href="https://hangzhang.org/" target="_blank" rel="noopener">张航</a> Amazon AI Applied Scientist</p><p>跨卡同步（Cross-GPU Synchronized）Batch Normalization或称为同步BN（SyncBN）。</p><h4 id="写在前面：为什么要跨卡同步Batch-Normalization"><a href="#写在前面：为什么要跨卡同步Batch-Normalization" class="headerlink" title="写在前面：为什么要跨卡同步Batch Normalization"></a>写在前面：为什么要跨卡同步Batch Normalization</h4><p>现有的便准Batch Normalization因为使用数据并行（Data Parallel），是单卡的实现模式，只对单个卡上对样本进行归一化，相当于减小了批量大小（batch-size）。对于比较消耗显存的训练任务时，往往单卡上的相对批量过小，影响模型的收敛效果。之前在我们在图像语义分割的实验中，发现使用大规模的效果反而变差，实际上就是BN在作怪。跨卡同步Batch Normalization 可以使用全局的样本进行归一化，这样相当于‘增大’了批大小，这样训练效果不再受到使用GPU数量的影响。最近在图像分割、物体检测的论文中，使用跨卡BN也会显著地提高实验结果，所以跨卡BN已然成为竞赛刷分、发论文的必备神器。</p><h4 id="Batch-Normalization如何工作"><a href="#Batch-Normalization如何工作" class="headerlink" title="Batch Normalization如何工作"></a>Batch Normalization如何工作</h4><p>既然是技术贴，读者很多都是神学大牛，为什么还要在这里赘述BatchNorm这个简单概念呢？其实不然，很多做科研的朋友如果没有解决过相关问题，很容易混淆BN在训练和测试时候的工作方式。记得在17年CVPR的<a href="http://deeplearning.csail.mit.edu/" target="_blank" rel="noopener">tutoial</a>上，何凯明和RBG两位大神分别在自己的talk上都特意强调了BN的工作原理，可见就算台下都是CV学者，也有必要复习一遍这些知识。</p><ul><li><p>工作原理：</p><p>BN有效地加速了模型训练，加大learning rate，让模型不再过度依赖初始化。它在训练时在网络内部进行归一化（normalization），为训练提供了有效的regularization，抑制过拟合，用原作者的话时防止了协方差偏移。这里上一张图来展示训练模式的BN：</p><p><a href="https://tramac.github.io/2019/04/08/SyncBN/batchnorm.jpg" target="_blank" rel="noopener"><img src="https://tramac.github.io/2019/04/08/SyncBN/batchnorm.jpg" alt="img"></a></p><p>其中输入样本，其均值为u，方差为sigma，BN的输出，时可学习对参数。个人认为，这种强大的效果其实来自于back-propagation时候，来自于均值和方差对输入样本的梯度。这也是BN在训练模式与其测试模式的重要区别，在测试模式时（evaluation mode）下，使用训练集上累积的均值和方差，在back-propagation的时候他们对输入样本没有梯度（gradient）。</p></li><li><p>数据并行：</p><p>深度学习平台在多卡（GPU）运算的时候都是采用的数据并行（DataParallel），如下图：</p><p><a href="https://tramac.github.io/2019/04/08/SyncBN/DataParallel.jpg" target="_blank" rel="noopener"><img src="https://tramac.github.io/2019/04/08/SyncBN/DataParallel.jpg" alt="img"></a></p><p>每次迭代，输入被等分成多份，然后分别在不同的卡上面前向（forward）和后向（backward）运算，并且求出梯度，在迭代完成后合并梯度、更新参数，再进行下一次迭代。因为再前向和后向运算的时候，每个卡上的模型是单都运算的，所以相应的Batch Normalization也是在卡内完成，所以实际BN所归一化的样本数量仅仅局限在卡内，相当于批量大小（batch-size）见笑了。</p></li></ul><h4 id="如何实现SyncBN"><a href="#如何实现SyncBN" class="headerlink" title="如何实现SyncBN"></a>如何实现SyncBN</h4><p>跨卡同步BN的关键是前向运算的时候拿到全局的均值和方差，在后向运算时得到相应的全局梯度。最简单的实现方法是先同步求均值，再发回各卡然后同步求方差，但是这样就同步了两次。实际上需要同步一次就可以了，我们使用了一个非常简单的技巧，如下图：</p><p><a href="https://tramac.github.io/2019/04/08/SyncBN/SyncBN.jpg" target="_blank" rel="noopener"><img src="https://tramac.github.io/2019/04/08/SyncBN/SyncBN.jpg" alt="img"></a></p><p>这样在前向运算的时候，我们只需要在各卡上算出与，再跨卡求出全局的和即可得到正确的均值和方差， 同理我们在后向运算的时候只需同步一次，求出相应的梯度。</p>]]></content>
+    <content type="html"><![CDATA[<p>作者：<a href="https://hangzhang.org/" target="_blank" rel="noopener">张航</a> Amazon AI Applied Scientist</p><p>跨卡同步（Cross-GPU Synchronized）Batch Normalization或称为同步BN（SyncBN）。</p><h4 id="写在前面：为什么要跨卡同步Batch-Normalization"><a href="#写在前面：为什么要跨卡同步Batch-Normalization" class="headerlink" title="写在前面：为什么要跨卡同步Batch Normalization"></a>写在前面：为什么要跨卡同步Batch Normalization</h4><p>现有的便准Batch Normalization因为使用数据并行（Data Parallel），是单卡的实现模式，只对单个卡上对样本进行归一化，相当于减小了批量大小（batch-size）。对于比较消耗显存的训练任务时，往往单卡上的相对批量过小，影响模型的收敛效果。之前在我们在图像语义分割的实验中，发现使用大规模的效果反而变差，实际上就是BN在作怪。跨卡同步Batch Normalization 可以使用全局的样本进行归一化，这样相当于‘增大’了批大小，这样训练效果不再受到使用GPU数量的影响。最近在图像分割、物体检测的论文中，使用跨卡BN也会显著地提高实验结果，所以跨卡BN已然成为竞赛刷分、发论文的必备神器。</p><h4 id="Batch-Normalization如何工作"><a href="#Batch-Normalization如何工作" class="headerlink" title="Batch Normalization如何工作"></a>Batch Normalization如何工作</h4><p>既然是技术贴，读者很多都是神学大牛，为什么还要在这里赘述BatchNorm这个简单概念呢？其实不然，很多做科研的朋友如果没有解决过相关问题，很容易混淆BN在训练和测试时候的工作方式。记得在17年CVPR的<a href="http://deeplearning.csail.mit.edu/" target="_blank" rel="noopener">tutoial</a>上，何凯明和RBG两位大神分别在自己的talk上都特意强调了BN的工作原理，可见就算台下都是CV学者，也有必要复习一遍这些知识。</p><ul><li><p>工作原理：</p><p>BN有效地加速了模型训练，加大learning rate，让模型不再过度依赖初始化。它在训练时在网络内部进行归一化（normalization），为训练提供了有效的regularization，抑制过拟合，用原作者的话时防止了协方差偏移。这里上一张图来展示训练模式的BN：</p><p><a href="https://tramac.github.io/2019/04/08/SyncBN/batchnorm.jpg"><img src="https://tramac.github.io/2019/04/08/SyncBN/batchnorm.jpg" alt="img"></a></p><p>其中输入样本，其均值为u，方差为sigma，BN的输出，时可学习对参数。个人认为，这种强大的效果其实来自于back-propagation时候，来自于均值和方差对输入样本的梯度。这也是BN在训练模式与其测试模式的重要区别，在测试模式时（evaluation mode）下，使用训练集上累积的均值和方差，在back-propagation的时候他们对输入样本没有梯度（gradient）。</p></li><li><p>数据并行：</p><p>深度学习平台在多卡（GPU）运算的时候都是采用的数据并行（DataParallel），如下图：</p><p><a href="https://tramac.github.io/2019/04/08/SyncBN/DataParallel.jpg"><img src="https://tramac.github.io/2019/04/08/SyncBN/DataParallel.jpg" alt="img"></a></p><p>每次迭代，输入被等分成多份，然后分别在不同的卡上面前向（forward）和后向（backward）运算，并且求出梯度，在迭代完成后合并梯度、更新参数，再进行下一次迭代。因为再前向和后向运算的时候，每个卡上的模型是单都运算的，所以相应的Batch Normalization也是在卡内完成，所以实际BN所归一化的样本数量仅仅局限在卡内，相当于批量大小（batch-size）见笑了。</p></li></ul><h4 id="如何实现SyncBN"><a href="#如何实现SyncBN" class="headerlink" title="如何实现SyncBN"></a>如何实现SyncBN</h4><p>跨卡同步BN的关键是前向运算的时候拿到全局的均值和方差，在后向运算时得到相应的全局梯度。最简单的实现方法是先同步求均值，再发回各卡然后同步求方差，但是这样就同步了两次。实际上需要同步一次就可以了，我们使用了一个非常简单的技巧，如下图：</p><p><a href="https://tramac.github.io/2019/04/08/SyncBN/SyncBN.jpg"><img src="https://tramac.github.io/2019/04/08/SyncBN/SyncBN.jpg" alt="img"></a></p><p>这样在前向运算的时候，我们只需要在各卡上算出与，再跨卡求出全局的和即可得到正确的均值和方差， 同理我们在后向运算的时候只需同步一次，求出相应的梯度。</p>]]></content>
     
     <summary type="html">
     
@@ -63,12 +63,12 @@
   
   <entry>
     <title>PyTorch参数初始化及Finetunning</title>
-    <link href="http://yoursite.com/2020/07/17/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/"/>
-    <id>http://yoursite.com/2020/07/17/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/</id>
+    <link href="http://tramac.github.io/2020/07/17/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/"/>
+    <id>http://tramac.github.io/2020/07/17/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/</id>
     <published>2020-07-17T06:28:38.932Z</published>
     <updated>2020-07-17T08:20:53.720Z</updated>
     
-    <content type="html"><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>PyTorch的代码中很多都有显式的参数初始化过程（默认的初始化形式是什么？），本文将对其做一个总结。</p><h2 id="参数初始化"><a href="#参数初始化" class="headerlink" title="参数初始化"></a>参数初始化</h2><p>参数的初始化其实就是对参数进行赋值。网络中所需要学习的参数其实都是<code>Variable</code>，它其实是对<code>Tensor</code>的封装，同时提供了<code>data</code>，<code>grad</code>等接口，这就意味着我们可以直接对这些参数进行赋值操作。这就是PyTorch简洁高效所在。</p><p><a href="https://tramac.github.io/2019/04/08/PyTorch参数初始化及Finetunning/variable.png" target="_blank" rel="noopener"><img src="https://tramac.github.io/2019/04/08/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/variable.png" alt="img"></a></p><p>PyTorch中有多种初始化方式，但是其作者所推崇的方式如下：</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">weight_init</span><span class="params">(m)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> isinstance(m, nn.Conv2d):</span><br><span class="line">        n = m.kernel_size[<span class="number">0</span>] * m.kernel_size[<span class="number">1</span>] * m.out_channels</span><br><span class="line">        m.weight.data.normal_(<span class="number">0</span>, math.sqrt(<span class="number">2.</span> / n))</span><br><span class="line">    <span class="keyword">elif</span> isinstance(m, nn.BatchNorm2d):</span><br><span class="line">        m.weight.data.fill_(<span class="number">1</span>)</span><br><span class="line">        m.bias.data.zero_()</span><br></pre></td></tr></table></figure><h2 id="Finetunning"><a href="#Finetunning" class="headerlink" title="Finetunning"></a>Finetunning</h2><p>通常在加载了预训练模型的参数之后，我们需要finetune模型，一般有以下两种方式：</p><h4 id="局部微调"><a href="#局部微调" class="headerlink" title="局部微调"></a>局部微调</h4><p>冻结其它层，只调节最后的几层。其实不训练也就意味着不进行梯度计算，PyTorch中提供的<code>requires_grad</code>使得对训练的控制变得非常简单。</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">model = torchvision.models.resnet18(pretrained=<span class="literal">True</span>)</span><br><span class="line"><span class="keyword">for</span> param <span class="keyword">in</span> model.parameters():</span><br><span class="line">    param.requires_grad = <span class="literal">False</span></span><br><span class="line"><span class="comment"># 替换最后的全连接层，新构造的模块的参数默认requires_grad=True</span></span><br><span class="line">model.fc = nn.Linear(<span class="number">512</span>, <span class="number">100</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 只优化最后的分类层</span></span><br><span class="line">optimizer = optim.SGD(model.fc.parameters(), lr=<span class="number">1e-2</span>, momentum=<span class="number">0.9</span>)</span><br></pre></td></tr></table></figure><h4 id="全局微调"><a href="#全局微调" class="headerlink" title="全局微调"></a>全局微调</h4><p>对全局都进行finetune，但是希望该换过的层和其它层的学习率不同，这是可以把其它层和新层在<code>optimizer</code>中单独赋予不同的学习率。如下：</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ignored_params = list(map(id, model.fc.parameters()))</span><br><span class="line">base_params = filter(<span class="keyword">lambda</span> p: id(p) <span class="keyword">not</span> <span class="keyword">in</span> ignored_params,</span><br><span class="line">                     model.parameters())</span><br><span class="line"></span><br><span class="line">optimizer = torch.optim.SGD([</span><br><span class="line">            &#123;<span class="string">'params'</span>: base_params&#125;,</span><br><span class="line">            &#123;<span class="string">'params'</span>: model.fc.parameters(), <span class="string">'lr'</span>: <span class="number">1e-3</span>&#125;</span><br><span class="line">            ], lr=<span class="number">1e-2</span>, momentum=<span class="number">0.9</span>)</span><br></pre></td></tr></table></figure><p>其中<code>base_params</code>使用<code>1e-3</code>来训练，<code>model.fc.parameters</code>使用<code>1e-2</code>来训练，<code>momentum</code>是二者共有的。</p><h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul><li><a href="https://blog.csdn.net/u012759136/article/details/65634477" target="_blank" rel="noopener">PyTorch参数初始化和Finetune</a></li></ul>]]></content>
+    <content type="html"><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>PyTorch的代码中很多都有显式的参数初始化过程（默认的初始化形式是什么？），本文将对其做一个总结。</p><h2 id="参数初始化"><a href="#参数初始化" class="headerlink" title="参数初始化"></a>参数初始化</h2><p>参数的初始化其实就是对参数进行赋值。网络中所需要学习的参数其实都是<code>Variable</code>，它其实是对<code>Tensor</code>的封装，同时提供了<code>data</code>，<code>grad</code>等接口，这就意味着我们可以直接对这些参数进行赋值操作。这就是PyTorch简洁高效所在。</p><p><a href="https://tramac.github.io/2019/04/08/PyTorch参数初始化及Finetunning/variable.png"><img src="https://tramac.github.io/2019/04/08/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/variable.png" alt="img"></a></p><p>PyTorch中有多种初始化方式，但是其作者所推崇的方式如下：</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">weight_init</span><span class="params">(m)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> isinstance(m, nn.Conv2d):</span><br><span class="line">        n = m.kernel_size[<span class="number">0</span>] * m.kernel_size[<span class="number">1</span>] * m.out_channels</span><br><span class="line">        m.weight.data.normal_(<span class="number">0</span>, math.sqrt(<span class="number">2.</span> / n))</span><br><span class="line">    <span class="keyword">elif</span> isinstance(m, nn.BatchNorm2d):</span><br><span class="line">        m.weight.data.fill_(<span class="number">1</span>)</span><br><span class="line">        m.bias.data.zero_()</span><br></pre></td></tr></table></figure><h2 id="Finetunning"><a href="#Finetunning" class="headerlink" title="Finetunning"></a>Finetunning</h2><p>通常在加载了预训练模型的参数之后，我们需要finetune模型，一般有以下两种方式：</p><h4 id="局部微调"><a href="#局部微调" class="headerlink" title="局部微调"></a>局部微调</h4><p>冻结其它层，只调节最后的几层。其实不训练也就意味着不进行梯度计算，PyTorch中提供的<code>requires_grad</code>使得对训练的控制变得非常简单。</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">model = torchvision.models.resnet18(pretrained=<span class="literal">True</span>)</span><br><span class="line"><span class="keyword">for</span> param <span class="keyword">in</span> model.parameters():</span><br><span class="line">    param.requires_grad = <span class="literal">False</span></span><br><span class="line"><span class="comment"># 替换最后的全连接层，新构造的模块的参数默认requires_grad=True</span></span><br><span class="line">model.fc = nn.Linear(<span class="number">512</span>, <span class="number">100</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 只优化最后的分类层</span></span><br><span class="line">optimizer = optim.SGD(model.fc.parameters(), lr=<span class="number">1e-2</span>, momentum=<span class="number">0.9</span>)</span><br></pre></td></tr></table></figure><h4 id="全局微调"><a href="#全局微调" class="headerlink" title="全局微调"></a>全局微调</h4><p>对全局都进行finetune，但是希望该换过的层和其它层的学习率不同，这是可以把其它层和新层在<code>optimizer</code>中单独赋予不同的学习率。如下：</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ignored_params = list(map(id, model.fc.parameters()))</span><br><span class="line">base_params = filter(<span class="keyword">lambda</span> p: id(p) <span class="keyword">not</span> <span class="keyword">in</span> ignored_params,</span><br><span class="line">                     model.parameters())</span><br><span class="line"></span><br><span class="line">optimizer = torch.optim.SGD([</span><br><span class="line">            &#123;<span class="string">'params'</span>: base_params&#125;,</span><br><span class="line">            &#123;<span class="string">'params'</span>: model.fc.parameters(), <span class="string">'lr'</span>: <span class="number">1e-3</span>&#125;</span><br><span class="line">            ], lr=<span class="number">1e-2</span>, momentum=<span class="number">0.9</span>)</span><br></pre></td></tr></table></figure><p>其中<code>base_params</code>使用<code>1e-3</code>来训练，<code>model.fc.parameters</code>使用<code>1e-2</code>来训练，<code>momentum</code>是二者共有的。</p><h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul><li><a href="https://blog.csdn.net/u012759136/article/details/65634477" target="_blank" rel="noopener">PyTorch参数初始化和Finetune</a></li></ul>]]></content>
     
     <summary type="html">
     
@@ -86,8 +86,8 @@
   
   <entry>
     <title>第9章 图像局部与分割</title>
-    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/"/>
-    <id>http://yoursite.com/2020/07/17/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/"/>
+    <id>http://tramac.github.io/2020/07/17/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/</id>
     <published>2020-07-17T06:26:39.600Z</published>
     <updated>2020-07-17T08:28:34.370Z</updated>
     
@@ -108,8 +108,8 @@
   
   <entry>
     <title>第8章 轮廓</title>
-    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC8%E7%AB%A0%20%E8%BD%AE%E5%BB%93/"/>
-    <id>http://yoursite.com/2020/07/17/%E7%AC%AC8%E7%AB%A0%20%E8%BD%AE%E5%BB%93/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E7%AC%AC8%E7%AB%A0%20%E8%BD%AE%E5%BB%93/"/>
+    <id>http://tramac.github.io/2020/07/17/%E7%AC%AC8%E7%AB%A0%20%E8%BD%AE%E5%BB%93/</id>
     <published>2020-07-17T06:26:12.092Z</published>
     <updated>2020-07-17T08:27:51.016Z</updated>
     
@@ -130,8 +130,8 @@
   
   <entry>
     <title>第7章 直方图与匹配</title>
-    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC7%E7%AB%A0%20%E7%9B%B4%E6%96%B9%E5%9B%BE%E4%B8%8E%E5%8C%B9%E9%85%8D/"/>
-    <id>http://yoursite.com/2020/07/17/%E7%AC%AC7%E7%AB%A0%20%E7%9B%B4%E6%96%B9%E5%9B%BE%E4%B8%8E%E5%8C%B9%E9%85%8D/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E7%AC%AC7%E7%AB%A0%20%E7%9B%B4%E6%96%B9%E5%9B%BE%E4%B8%8E%E5%8C%B9%E9%85%8D/"/>
+    <id>http://tramac.github.io/2020/07/17/%E7%AC%AC7%E7%AB%A0%20%E7%9B%B4%E6%96%B9%E5%9B%BE%E4%B8%8E%E5%8C%B9%E9%85%8D/</id>
     <published>2020-07-17T06:25:31.273Z</published>
     <updated>2020-07-17T08:26:09.701Z</updated>
     
@@ -152,8 +152,8 @@
   
   <entry>
     <title>第6章 图像变换</title>
-    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC6%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%8F%98%E6%8D%A2/"/>
-    <id>http://yoursite.com/2020/07/17/%E7%AC%AC6%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%8F%98%E6%8D%A2/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E7%AC%AC6%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%8F%98%E6%8D%A2/"/>
+    <id>http://tramac.github.io/2020/07/17/%E7%AC%AC6%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%8F%98%E6%8D%A2/</id>
     <published>2020-07-17T06:24:43.056Z</published>
     <updated>2020-07-17T08:25:06.009Z</updated>
     
@@ -174,8 +174,8 @@
   
   <entry>
     <title>第5章 图像处理</title>
-    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC5%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/"/>
-    <id>http://yoursite.com/2020/07/17/%E7%AC%AC5%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E7%AC%AC5%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/"/>
+    <id>http://tramac.github.io/2020/07/17/%E7%AC%AC5%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</id>
     <published>2020-07-17T06:23:53.866Z</published>
     <updated>2020-07-17T08:23:45.406Z</updated>
     
@@ -196,8 +196,8 @@
   
   <entry>
     <title>第4章 细说HighGUI</title>
-    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC4%E7%AB%A0%20%E7%BB%86%E8%AF%B4HighGUI/"/>
-    <id>http://yoursite.com/2020/07/17/%E7%AC%AC4%E7%AB%A0%20%E7%BB%86%E8%AF%B4HighGUI/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E7%AC%AC4%E7%AB%A0%20%E7%BB%86%E8%AF%B4HighGUI/"/>
+    <id>http://tramac.github.io/2020/07/17/%E7%AC%AC4%E7%AB%A0%20%E7%BB%86%E8%AF%B4HighGUI/</id>
     <published>2020-07-17T06:20:27.229Z</published>
     <updated>2020-07-17T08:23:04.001Z</updated>
     
@@ -218,8 +218,8 @@
   
   <entry>
     <title>第3章 初探OpenCV</title>
-    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC3%E7%AB%A0%20%E5%88%9D%E6%8E%A2OpenCV/"/>
-    <id>http://yoursite.com/2020/07/17/%E7%AC%AC3%E7%AB%A0%20%E5%88%9D%E6%8E%A2OpenCV/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E7%AC%AC3%E7%AB%A0%20%E5%88%9D%E6%8E%A2OpenCV/"/>
+    <id>http://tramac.github.io/2020/07/17/%E7%AC%AC3%E7%AB%A0%20%E5%88%9D%E6%8E%A2OpenCV/</id>
     <published>2020-07-17T06:19:46.760Z</published>
     <updated>2020-07-17T08:22:34.666Z</updated>
     
@@ -241,8 +241,8 @@
   
   <entry>
     <title>第2章 OpenCV入门</title>
-    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC2%E7%AB%A0%20OpenCV%E5%85%A5%E9%97%A8/"/>
-    <id>http://yoursite.com/2020/07/17/%E7%AC%AC2%E7%AB%A0%20OpenCV%E5%85%A5%E9%97%A8/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E7%AC%AC2%E7%AB%A0%20OpenCV%E5%85%A5%E9%97%A8/"/>
+    <id>http://tramac.github.io/2020/07/17/%E7%AC%AC2%E7%AB%A0%20OpenCV%E5%85%A5%E9%97%A8/</id>
     <published>2020-07-17T06:18:47.169Z</published>
     <updated>2020-07-17T08:21:46.375Z</updated>
     
@@ -265,8 +265,8 @@
   
   <entry>
     <title>学习OpenCV环境准备</title>
-    <link href="http://yoursite.com/2020/07/17/%E5%AD%A6%E4%B9%A0OpenCV%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/"/>
-    <id>http://yoursite.com/2020/07/17/%E5%AD%A6%E4%B9%A0OpenCV%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E5%AD%A6%E4%B9%A0OpenCV%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/"/>
+    <id>http://tramac.github.io/2020/07/17/%E5%AD%A6%E4%B9%A0OpenCV%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/</id>
     <published>2020-07-17T06:17:51.812Z</published>
     <updated>2020-07-17T08:30:29.244Z</updated>
     
@@ -287,8 +287,8 @@
   
   <entry>
     <title>Finetuning with Tensorflow</title>
-    <link href="http://yoursite.com/2020/07/17/Finetuning%20with%20Tensorflow/"/>
-    <id>http://yoursite.com/2020/07/17/Finetuning%20with%20Tensorflow/</id>
+    <link href="http://tramac.github.io/2020/07/17/Finetuning%20with%20Tensorflow/"/>
+    <id>http://tramac.github.io/2020/07/17/Finetuning%20with%20Tensorflow/</id>
     <published>2020-07-17T06:16:08.179Z</published>
     <updated>2020-07-17T08:30:40.706Z</updated>
     
@@ -312,8 +312,8 @@
   
   <entry>
     <title>分布式训练-PyTorch</title>
-    <link href="http://yoursite.com/2020/07/17/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83-PyTorch/"/>
-    <id>http://yoursite.com/2020/07/17/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83-PyTorch/</id>
+    <link href="http://tramac.github.io/2020/07/17/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83-PyTorch/"/>
+    <id>http://tramac.github.io/2020/07/17/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83-PyTorch/</id>
     <published>2020-07-17T05:13:21.451Z</published>
     <updated>2020-07-17T08:29:44.367Z</updated>
     
@@ -334,8 +334,8 @@
   
   <entry>
     <title>Paper-reading List</title>
-    <link href="http://yoursite.com/2018/11/18/Paper-reading%20list/"/>
-    <id>http://yoursite.com/2018/11/18/Paper-reading%20list/</id>
+    <link href="http://tramac.github.io/2018/11/18/Paper-reading%20list/"/>
+    <id>http://tramac.github.io/2018/11/18/Paper-reading%20list/</id>
     <published>2018-11-18T07:41:18.000Z</published>
     <updated>2020-07-17T09:39:52.039Z</updated>
     
@@ -352,7 +352,7 @@
     
     
     
-      <category term="Paper" scheme="http://yoursite.com/tags/Paper/"/>
+      <category term="Paper" scheme="http://tramac.github.io/tags/Paper/"/>
     
   </entry>
   
