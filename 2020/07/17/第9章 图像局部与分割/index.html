@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="局部与分割简单来讲，分割就是如何从图像中将目标或部分目标分割出来。处了从图像中分割出前景目标之外，在很多情况下我们也希望将感兴趣的目标区域分割出来。本章主要研究其他用于查找、填充和分离一幅图像中的目标以及部分目标物体的算法。 背景减除（背景差分）由于背景减除简单而且摄像机在很多情况下是固定的，在视频安全领域，背景减除也许是最基本的图像处理操作。所以，背景模型的建立至关重要。一旦背景模型建立，将背景">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第9章 图像局部与分割">
+<meta property="og:url" content="http://yoursite.com/2020/07/17/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/index.html">
+<meta property="og:site_name" content="Tramac">
+<meta property="og:description" content="局部与分割简单来讲，分割就是如何从图像中将目标或部分目标分割出来。处了从图像中分割出前景目标之外，在很多情况下我们也希望将感兴趣的目标区域分割出来。本章主要研究其他用于查找、填充和分离一幅图像中的目标以及部分目标物体的算法。 背景减除（背景差分）由于背景减除简单而且摄像机在很多情况下是固定的，在视频安全领域，背景减除也许是最基本的图像处理操作。所以，背景模型的建立至关重要。一旦背景模型建立，将背景">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-07-17T06:26:39.600Z">
+<meta property="article:modified_time" content="2020-07-17T06:26:39.600Z">
+<meta property="article:author" content="Tramac">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/07/17/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>第9章 图像局部与分割 | Tramac</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Tramac" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Tramac</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/07/17/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Tramac">
+      <meta itemprop="description" content="Tramac写字的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tramac">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          第9章 图像局部与分割
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-17 14:26:39" itemprop="dateCreated datePublished" datetime="2020-07-17T14:26:39+08:00">2020-07-17</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="局部与分割"><a href="#局部与分割" class="headerlink" title="局部与分割"></a>局部与分割</h4><p>简单来讲，分割就是如何从图像中将目标或部分目标分割出来。处了从图像中分割出前景目标之外，在很多情况下我们也希望将感兴趣的目标区域分割出来。<br>本章主要研究其他用于查找、填充和分离一幅图像中的目标以及部分目标物体的算法。</p>
+<h4 id="背景减除（背景差分）"><a href="#背景减除（背景差分）" class="headerlink" title="背景减除（背景差分）"></a>背景减除（背景差分）</h4><p>由于背景减除简单而且摄像机在很多情况下是固定的，在视频安全领域，背景减除也许是最基本的图像处理操作。所以，背景模型的建立至关重要。<br>一旦背景模型建立，将背景模型和当前的图像进行比较，然后减去这些已知的背景减除，则剩下的目标物大致就是所求的前景目标了。<br>当然，“背景”在不同的应用场合下是一个很难定义的问题，后续会介绍一些背景建模的方法。</p>
+<ul>
+<li><strong>背景减除的缺点</strong></li>
+</ul>
+<p>背景减除的一个缺点是建立在一个不常成立的假设：所有像素点是独立的。因为这种建模方法在计算像素变化时并没有考虑它相邻的像素。<br>其中一种解决方式是建立一个多元模型，它把基本的像素独立模型扩展为包含了相邻像素的亮度的基本场景。在这种情况下，我们用相邻像素的亮度来区别相邻像素值的相对明暗。但是这种模型消耗两倍的内存和更多的计算量。<br>但是在实际应用中，由于额外的开销，通常会避免使用复杂的模型。当像素独立假设不成立情况下，我们可以更有效地把精力投入到清除那些错误的检测结果中。本章将通过使用连通域，并且后续的方法严格限制在像素变化独立的假设基础上。</p>
+<ul>
+<li><strong>场景建模</strong></li>
+</ul>
+<p>通常，一个场景模型可能包含许多层次，从新的场景到旧的场景再到背景。</p>
+<ul>
+<li><strong>像素片段</strong></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 对任意直线上的像素进行采样</span><br><span class="line">int cvInitLineIterator(</span><br><span class="line">    const CvArr* image,</span><br><span class="line">    CvPoint pt1,</span><br><span class="line">    CvPoint pt2,</span><br><span class="line">    CvLineIterator* line_iterator,</span><br><span class="line">    int connectivity&#x3D;8,</span><br><span class="line">    int left_to_right&#x3D;0</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>帧差</strong></li>
+</ul>
+<p>最简单的背景减除方法就是用一帧减去另一帧，然后将足够大的差别标为前景。这种方法往往能捕捉运动目标的边缘。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 计算帧差</span><br><span class="line">cvAbsDiff(frameTime1, frameTime2, frameForeground);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>由于像素值总会受到噪声和波动的影响，我们应该忽略很小的差异，标识其余的作为较大的差别：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cvThreshold(frameForeground, frameForeground, 15, 255, CV_THRESH_BINARY);</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>平均背景法</strong></li>
+</ul>
+<p>平均背景法的基本思路是计算每个像素的平均值和标准差作为它的背景模型。</p>
+<ul>
+<li><strong>累积均值、方差和协方差</strong></li>
+</ul>
+<p>在平均背景法中，一个常用的函数是累积函数cvAcc()。通过该操作，我们可以计算出整个场景或部分场景的基本统计特性（均值，方差和协方差）。<br><strong>均值漂移值</strong>：通过大量图像计算每个像素的均值的最简单的方法就是调用函数cvAcc()把他们加起来再除以图像总数来获得均值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">void cvAcc(</span><br><span class="line">    const CvArr* image,</span><br><span class="line">    CvArr* sum,</span><br><span class="line">    const CvArr* mask&#x3D;NULL</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 直接计算均值漂移</span><br><span class="line">void cvRunningAvg(</span><br><span class="line">    const CvArr* image,</span><br><span class="line">    CvArr* acc,</span><br><span class="line">    double alpha,</span><br><span class="line">    const CvArr* mask&#x3D;NULL;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>计算方差</strong>：可以通过累积平方图像，快速计算单个像素的方差。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">void cvSquareAcc(</span><br><span class="line">    const CvArr* image,</span><br><span class="line">    CvArr* sqsum,</span><br><span class="line">    const CvArr* mask&#x3D;NULL</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>计算协方差</strong>：可以通过选择一个特定的时间间隔来观测图像是怎么变化的，然后用当前图像乘以和特定时间间隔相对应的图像。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 计算协方差</span><br><span class="line">void cvMultiplyAcc(</span><br><span class="line">    const CvArr* image1,</span><br><span class="line">    const CvArr* image2,</span><br><span class="line">    CvArr* acc,</span><br><span class="line">    const CvArr* mask&#x3D;NULL</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>高级背景模型</strong></li>
+</ul>
+<p>codebook由一些boxes组成，这些boxes包含很长时间不变的像素值。codebook方法能够解决像素剧烈变化的问题。<br><strong>结构</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; codebook结构体定义</span><br><span class="line">typedef struct code_book&#123;</span><br><span class="line">    code_element **cb;</span><br><span class="line">    int numEntries;</span><br><span class="line">    int t;</span><br><span class="line">&#125; codebook;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>背景学习</strong><br>略<br><strong>学习有移动前景目标的背景</strong><br>略<br><strong>背景差分：寻找前景目标</strong><br>略<br><strong>使用codebook背景模型流程总结</strong>:<br>1.使用函数update_codebook()在几秒钟或几分钟时间内训练一个基本的背景模型。<br>2.调用函数clear_stale_entries()清除stale索引。<br>3.调整阈值minMod和maxMod对已知前景达到最好的分割。<br>4.保持一个更高级别的场景模型。<br>5.通过函数background_diff()使用训练好的模型将前景从背景中分割出来。<br>6.定期更新学习的背景像素。<br>7.在一个频率较慢的情况下，用函数clear_stale_entries()定期清理stale的codebook索引。</p>
+<ul>
+<li><strong>用于前景清除的连通部分</strong></li>
+</ul>
+<p>使用连通成分分析来清理原始分割图像是另一种寻找轮廓的方法。它能从原始噪声掩模图像创建出完整的掩模图像。连通域法是一个功能强大的在背景减去中去除噪声的技术。<br>下面直接给出一些处理连通区域的主要功能：<br>1.采用多边形拟合存在的轮廓部分，或凸包设置连通轮廓有多大<br>2.设置连通轮廓的大小以保证不被删除<br>3.设置返回的连通轮廓的最大数目<br>4.可选返回存活的连通轮廓的外接矩形<br>5.可选返回存活连通轮廓的中心</p>
+<h4 id="分水岭算法"><a href="#分水岭算法" class="headerlink" title="分水岭算法"></a>分水岭算法</h4><p>在许多实际情况下，我们要分割图像，但无法从背景图像中获得有用信息。分水岭算法在这方面往往是有效的。<br>更确切的说，分水岭算法允许用户来标记目标的某个部分为目标，或背景的某个部分为背景。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 分水岭算法函数</span><br><span class="line">void cvWatershed(const CvArr* image, CvArr* markers);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="用Inpainting修补图像"><a href="#用Inpainting修补图像" class="headerlink" title="用Inpainting修补图像"></a>用Inpainting修补图像</h4><p>图像常常被噪声腐蚀。这些噪声也许是镜头上的灰尘或水滴造成的，也可能是旧照片上的划痕，或者图像的部分已经被破坏了。Inpainting是修复这些损害的一种有效方法，它可以利用这些已经破坏区域的边缘的颜色和结构，繁殖和混合到损坏的图像里面。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">void cvInpaint(</span><br><span class="line">    const CvArr* src,</span><br><span class="line">    const CvArr* mask,</span><br><span class="line">    CvArr* dst,</span><br><span class="line">    double inpaintRadius,</span><br><span class="line">    int flags</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="均值漂移分割"><a href="#均值漂移分割" class="headerlink" title="均值漂移分割"></a>均值漂移分割</h4><p>均值漂移能沿时间轴找到颜色空间的峰值分布。这里均值漂移分割能找到在空间上颜色分布的峰值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 均值漂移分割</span><br><span class="line">void cvPyrMeanShiftFiltering(</span><br><span class="line">    const CvArr* src,</span><br><span class="line">    CvArr* dst,</span><br><span class="line">    double spatialRadius,</span><br><span class="line">    double colorRadius,</span><br><span class="line">    int max_level&#x3D;1,</span><br><span class="line">    CvTermCriteria termcrit&#x3D;cvTermCriteria(</span><br><span class="line">        CV_TERMCRIT_ITER | CV_TERMCRIT_EPS,</span><br><span class="line">        5,</span><br><span class="line">        1</span><br><span class="line">    )</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/07/17/%E7%AC%AC8%E7%AB%A0%20%E8%BD%AE%E5%BB%93/" rel="prev" title="第8章 轮廓">
+      <i class="fa fa-chevron-left"></i> 第8章 轮廓
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/07/17/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/" rel="next" title="PyTorch参数初始化及Finetunning">
+      PyTorch参数初始化及Finetunning <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#局部与分割"><span class="nav-number">1.</span> <span class="nav-text">局部与分割</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#背景减除（背景差分）"><span class="nav-number">2.</span> <span class="nav-text">背景减除（背景差分）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分水岭算法"><span class="nav-number">3.</span> <span class="nav-text">分水岭算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#用Inpainting修补图像"><span class="nav-number">4.</span> <span class="nav-text">用Inpainting修补图像</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#均值漂移分割"><span class="nav-number">5.</span> <span class="nav-text">均值漂移分割</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Tramac"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Tramac</p>
+  <div class="site-description" itemprop="description">Tramac写字的地方</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Tramac" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Tramac" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tramac</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

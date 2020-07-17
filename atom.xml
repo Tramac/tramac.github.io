@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Tramac</title>
+  
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://yoursite.com/"/>
+  <updated>2020-07-17T06:29:56.839Z</updated>
+  <id>http://yoursite.com/</id>
+  
+  <author>
+    <name>Tramac</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>并行训练-PyTorch</title>
+    <link href="http://yoursite.com/2020/07/17/%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83-PyTorch/"/>
+    <id>http://yoursite.com/2020/07/17/%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83-PyTorch/</id>
+    <published>2020-07-17T06:29:56.839Z</published>
+    <updated>2020-07-17T06:29:56.839Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;当我们的设备具有多个GPUs时，为了训练加速，我们通常会选用多卡并行训练，常见的并行训练方式有数据并行和模型并行。而PyTorch中也给我们提供了数据并行的接口&lt;a href=&quot;https://github.com/pytorch/pytorch/blob/master/t
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>跨卡同步 Batch Normalization[转]</title>
+    <link href="http://yoursite.com/2020/07/17/%E8%B7%A8%E5%8D%A1%E5%90%8C%E6%AD%A5%20Batch%20Normalization[%E8%BD%AC]/"/>
+    <id>http://yoursite.com/2020/07/17/%E8%B7%A8%E5%8D%A1%E5%90%8C%E6%AD%A5%20Batch%20Normalization[%E8%BD%AC]/</id>
+    <published>2020-07-17T06:29:12.187Z</published>
+    <updated>2020-07-17T06:29:12.187Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;作者：&lt;a href=&quot;https://hangzhang.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;张航&lt;/a&gt; Amazon AI Applied Scientist&lt;/p&gt;
+&lt;p&gt;跨卡同步（Cross-GPU Synchronized）
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>PyTorch参数初始化及Finetunning</title>
+    <link href="http://yoursite.com/2020/07/17/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/"/>
+    <id>http://yoursite.com/2020/07/17/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/</id>
+    <published>2020-07-17T06:28:38.932Z</published>
+    <updated>2020-07-17T06:28:38.932Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;PyTorch的代码中很多都有显式的参数初始化过程（默认的初始化形式是什么？），本文将对其做一个总结。&lt;/p&gt;
+&lt;h2 id=&quot;参数初始化&quot;
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>第9章 图像局部与分割</title>
+    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/"/>
+    <id>http://yoursite.com/2020/07/17/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/</id>
+    <published>2020-07-17T06:26:39.600Z</published>
+    <updated>2020-07-17T06:26:39.600Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;局部与分割&quot;&gt;&lt;a href=&quot;#局部与分割&quot; class=&quot;headerlink&quot; title=&quot;局部与分割&quot;&gt;&lt;/a&gt;局部与分割&lt;/h4&gt;&lt;p&gt;简单来讲，分割就是如何从图像中将目标或部分目标分割出来。处了从图像中分割出前景目标之外，在很多情况下我们也希望将感兴
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>第8章 轮廓</title>
+    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC8%E7%AB%A0%20%E8%BD%AE%E5%BB%93/"/>
+    <id>http://yoursite.com/2020/07/17/%E7%AC%AC8%E7%AB%A0%20%E8%BD%AE%E5%BB%93/</id>
+    <published>2020-07-17T06:26:12.092Z</published>
+    <updated>2020-07-17T06:26:12.092Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;内存&quot;&gt;&lt;a href=&quot;#内存&quot; class=&quot;headerlink&quot; title=&quot;内存&quot;&gt;&lt;/a&gt;内存&lt;/h4&gt;&lt;p&gt;OpenCV使用内存存储器(memory storage)来统一管理各种&lt;strong&gt;动态&lt;/strong&gt;对象的内存。内存存储器在底层被
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>第7章 直方图与匹配</title>
+    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC7%E7%AB%A0%20%E7%9B%B4%E6%96%B9%E5%9B%BE%E4%B8%8E%E5%8C%B9%E9%85%8D/"/>
+    <id>http://yoursite.com/2020/07/17/%E7%AC%AC7%E7%AB%A0%20%E7%9B%B4%E6%96%B9%E5%9B%BE%E4%B8%8E%E5%8C%B9%E9%85%8D/</id>
+    <published>2020-07-17T06:25:31.273Z</published>
+    <updated>2020-07-17T06:25:31.273Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;直方图的基本数据结构&quot;&gt;&lt;a href=&quot;#直方图的基本数据结构&quot; class=&quot;headerlink&quot; title=&quot;直方图的基本数据结构&quot;&gt;&lt;/a&gt;直方图的基本数据结构&lt;/h4&gt;&lt;p&gt;简单的说，直方图就是对数据进行统计，将统计值组织到一系列事先定义好的bin中
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>第6章 图像变换</title>
+    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC6%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%8F%98%E6%8D%A2/"/>
+    <id>http://yoursite.com/2020/07/17/%E7%AC%AC6%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%8F%98%E6%8D%A2/</id>
+    <published>2020-07-17T06:24:43.056Z</published>
+    <updated>2020-07-17T06:24:59.477Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;卷积&quot;&gt;&lt;a href=&quot;#卷积&quot; class=&quot;headerlink&quot; title=&quot;卷积&quot;&gt;&lt;/a&gt;卷积&lt;/h4&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span 
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>第5章 图像处理</title>
+    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC5%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/"/>
+    <id>http://yoursite.com/2020/07/17/%E7%AC%AC5%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</id>
+    <published>2020-07-17T06:23:53.866Z</published>
+    <updated>2020-07-17T06:23:53.867Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;平滑处理-模糊处理&quot;&gt;&lt;a href=&quot;#平滑处理-模糊处理&quot; class=&quot;headerlink&quot; title=&quot;平滑处理(模糊处理)&quot;&gt;&lt;/a&gt;平滑处理(模糊处理)&lt;/h4&gt;&lt;p&gt;平滑处理的用途有很多，最常见的是用来减少图像上的噪声或者失真。降低图像分辨率时，
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>第4章 细说HighGUI</title>
+    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC4%E7%AB%A0%20%E7%BB%86%E8%AF%B4HighGUI/"/>
+    <id>http://yoursite.com/2020/07/17/%E7%AC%AC4%E7%AB%A0%20%E7%BB%86%E8%AF%B4HighGUI/</id>
+    <published>2020-07-17T06:20:27.229Z</published>
+    <updated>2020-07-17T06:20:27.229Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;创建窗口&quot;&gt;&lt;a href=&quot;#创建窗口&quot; class=&quot;headerlink&quot; title=&quot;创建窗口&quot;&gt;&lt;/a&gt;创建窗口&lt;/h4&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pr
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>第3章 初探OpenCV</title>
+    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC3%E7%AB%A0%20%E5%88%9D%E6%8E%A2OpenCV/"/>
+    <id>http://yoursite.com/2020/07/17/%E7%AC%AC3%E7%AB%A0%20%E5%88%9D%E6%8E%A2OpenCV/</id>
+    <published>2020-07-17T06:19:46.760Z</published>
+    <updated>2020-07-17T06:19:46.760Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;OpenCV的基本数据类型&quot;&gt;&lt;a href=&quot;#OpenCV的基本数据类型&quot; class=&quot;headerlink&quot; title=&quot;OpenCV的基本数据类型&quot;&gt;&lt;/a&gt;OpenCV的基本数据类型&lt;/h4&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;基本数据类型&lt;/stro
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>第2章 OpenCV入门</title>
+    <link href="http://yoursite.com/2020/07/17/%E7%AC%AC2%E7%AB%A0%20OpenCV%E5%85%A5%E9%97%A8/"/>
+    <id>http://yoursite.com/2020/07/17/%E7%AC%AC2%E7%AB%A0%20OpenCV%E5%85%A5%E9%97%A8/</id>
+    <published>2020-07-17T06:18:47.169Z</published>
+    <updated>2020-07-17T06:18:47.169Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;OpenCV的结构和内容&quot;&gt;&lt;a href=&quot;#OpenCV的结构和内容&quot; class=&quot;headerlink&quot; title=&quot;OpenCV的结构和内容&quot;&gt;&lt;/a&gt;OpenCV的结构和内容&lt;/h4&gt;&lt;p&gt;OpenCV主体分为五个模块：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;C
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>学习OpenCV环境准备</title>
+    <link href="http://yoursite.com/2020/07/17/%E5%AD%A6%E4%B9%A0OpenCV%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/"/>
+    <id>http://yoursite.com/2020/07/17/%E5%AD%A6%E4%B9%A0OpenCV%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/</id>
+    <published>2020-07-17T06:17:51.812Z</published>
+    <updated>2020-07-17T06:17:51.812Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;OpenCV配置&quot;&gt;&lt;a href=&quot;#OpenCV配置&quot; class=&quot;headerlink&quot; title=&quot;OpenCV配置&quot;&gt;&lt;/a&gt;OpenCV配置&lt;/h4&gt;&lt;p&gt;由于我的Ubuntu 16.04不知道什么时候已经安装了OpenCV，所以这里省略了安装过程
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Finetuning with Tensorflow</title>
+    <link href="http://yoursite.com/2020/07/17/Finetuning%20with%20Tensorflow/"/>
+    <id>http://yoursite.com/2020/07/17/Finetuning%20with%20Tensorflow/</id>
+    <published>2020-07-17T06:16:08.179Z</published>
+    <updated>2020-07-17T06:16:08.180Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;很多网络的特征提取部分都会用到fine-tunning,比如resnet-50,inception等,该文章以AlexNet为例,分析tensorflow如何进行微调&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;finetuning的三要素:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>分布式训练-PyTorch</title>
+    <link href="http://yoursite.com/2020/07/17/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83-PyTorch/"/>
+    <id>http://yoursite.com/2020/07/17/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83-PyTorch/</id>
+    <published>2020-07-17T05:13:21.451Z</published>
+    <updated>2020-07-17T05:13:21.451Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;并行训练（数据并行与模型并行）与分布式训练是深度学习中加速训练的两种常用方式，相对于并行训练，分布式是更优的加速方案，也是PyTorch官方推荐的方法：&lt;br&gt;Multi-Process Single-GPU&lt;br&gt;This is the highly recommende
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Paper-reading list</title>
+    <link href="http://yoursite.com/2020/07/17/Paper-reading%20list/"/>
+    <id>http://yoursite.com/2020/07/17/Paper-reading%20list/</id>
+    <published>2020-07-17T02:34:18.704Z</published>
+    <updated>2020-07-17T02:34:18.704Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h2 id=&quot;Semantic-Segmentation&quot;&gt;&lt;a href=&quot;#Semantic-Segmentation&quot; class=&quot;headerlink&quot; title=&quot;Semantic Segmentation&quot;&gt;&lt;/a&gt;Semantic Segmentation&lt;/
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+</feed>

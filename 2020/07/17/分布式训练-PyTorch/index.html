@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="并行训练（数据并行与模型并行）与分布式训练是深度学习中加速训练的两种常用方式，相对于并行训练，分布式是更优的加速方案，也是PyTorch官方推荐的方法：Multi-Process Single-GPUThis is the highly recommended way to use DistributedDataParallel, with multiple processes, each of">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式训练-PyTorch">
+<meta property="og:url" content="http://yoursite.com/2020/07/17/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83-PyTorch/index.html">
+<meta property="og:site_name" content="Tramac">
+<meta property="og:description" content="并行训练（数据并行与模型并行）与分布式训练是深度学习中加速训练的两种常用方式，相对于并行训练，分布式是更优的加速方案，也是PyTorch官方推荐的方法：Multi-Process Single-GPUThis is the highly recommended way to use DistributedDataParallel, with multiple processes, each of">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-07-17T05:13:21.451Z">
+<meta property="article:modified_time" content="2020-07-17T05:13:21.451Z">
+<meta property="article:author" content="Tramac">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/07/17/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83-PyTorch/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>分布式训练-PyTorch | Tramac</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Tramac" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Tramac</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/07/17/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83-PyTorch/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Tramac">
+      <meta itemprop="description" content="Tramac写字的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tramac">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分布式训练-PyTorch
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-17 13:13:21" itemprop="dateCreated datePublished" datetime="2020-07-17T13:13:21+08:00">2020-07-17</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>并行训练（数据并行与模型并行）与分布式训练是深度学习中加速训练的两种常用方式，相对于并行训练，分布式是更优的加速方案，也是PyTorch官方推荐的方法：<br>Multi-Process Single-GPU<br>This is the highly recommended way to use DistributedDataParallel, with multiple processes, each of which operates on a single GPU. This is currently the fastest approach to do data parallel training using PyTorch and applies to both single-node(multi-GPU) and multi-node data parallel training. It is proven to be significantly faster than torch.nn.DataParallel for single-node multi-GPU data parallel training.</p>
+<p>个人理解：分布式训练其实也是并行训练的一种方式，只是相对于数据并行、模型并行有所不同。简单来说，分布式针对多机多卡，而数据并行针对单机多卡。</p>
+<h3 id="Distributed-Training-Code"><a href="#Distributed-Training-Code" class="headerlink" title="Distributed Training Code"></a>Distributed Training Code</h3><p>下面内容主要指出分布式训练代码中与常规训练过程之间的主要区别。</p>
+<h4 id="Imports"><a href="#Imports" class="headerlink" title="Imports"></a>Imports</h4><p>分布式训练主要涉及到的库主要有<a href="https://pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel" target="_blank" rel="noopener">torch.nn.parallel</a>，<a href="https://pytorch.org/docs/stable/distributed.html" target="_blank" rel="noopener">torch.distributed</a>，<a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.distributed.DistributedSampler" target="_blank" rel="noopener">torch.utils.data.distributed</a>以及<a href="https://pytorch.org/docs/stable/multiprocessing.html" target="_blank" rel="noopener">torch.multiprocessing</a>。需要注意的是我们需要把multiprocessing的start method设置为spawn或forkserver（仅Python3支持）,因为默认的方法为fork，容易导致死锁情况发生。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">import time</span><br><span class="line">import sys</span><br><span class="line">import torch</span><br><span class="line"></span><br><span class="line">if __name__ &#x3D;&#x3D; &#39;__main__&#39;:</span><br><span class="line">    torch.multiprocessing.set_start_method(&#39;spawn&#39;)</span><br><span class="line"></span><br><span class="line">import torch.nn as nn</span><br><span class="line">import torch.nn.parallel</span><br><span class="line">import torch.distributed as dist</span><br><span class="line">import torch.optim</span><br><span class="line">import torch.utils.data</span><br><span class="line">import torch.utils.data.distributed</span><br><span class="line">import torchvision.transforms as transforms</span><br><span class="line">import torchvision.datasets as datasets</span><br><span class="line">import torchvision.models as models</span><br></pre></td></tr></table></figure>
+
+<h4 id="Train-Function"><a href="#Train-Function" class="headerlink" title="Train Function"></a>Train Function</h4><p>第一个区别，在分布式训练过程中，需要设置数据的<code>non_blocking</code>的属性设置为<code>True</code>。该操作使得不同GPU上的数据副本允许重叠计算，并且可以输出训练时的统计数据，以便我们可以跟踪整个训练过程的进度。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">def train(train_loader, model, criterion, optimizer, epoch):</span><br><span class="line">    # switch to train mode</span><br><span class="line">    model.train()</span><br><span class="line">    </span><br><span class="line">    for i, (input, target) in enumerate(train_loader):</span><br><span class="line">        # Create non_blocking tensors for distributed training</span><br><span class="line">        input &#x3D; input.cuda(non_blocking&#x3D;True)</span><br><span class="line">        target &#x3D; target.cuda(non_blocking&#x3D;True)</span><br><span class="line">        </span><br><span class="line">        # compute output</span><br><span class="line">        output &#x3D; model(input)</span><br><span class="line">        loss &#x3D; criterion(output, target)</span><br><span class="line">        </span><br><span class="line">        # compute gradients in a backward pass</span><br><span class="line">        optimizer.zero_grad()</span><br><span class="line">        loss.backward()</span><br><span class="line">        </span><br><span class="line">        # Call step of optimizer to update model params</span><br><span class="line">        optimizer.step()</span><br><span class="line">        </span><br><span class="line">        if i % 10 &#x3D;&#x3D; 0:</span><br><span class="line">            print(&#39;Epoch: [&#123;0&#125;][&#123;1&#125;&#x2F;&#123;2&#125;]\t&#39;</span><br><span class="line">                  &#39;Loss &#123;loss.val:.4f&#125; (&#123;loss.avg:.4f&#125;)&#39;.format(</span><br><span class="line">                  epoch, i, len(train_loader), loss&#x3D;losses))</span><br><span class="line"></span><br><span class="line">def adjust_learning_rate(initial_lr, optimizer, epoch):</span><br><span class="line">    &quot;&quot;&quot;Sets the learning rate to the initial LR decayed by 10 every 30 epochs&quot;&quot;&quot;</span><br><span class="line">    lr &#x3D; initial_lr * (0.1 ** (epoch &#x2F;&#x2F; 30))</span><br><span class="line">    for param_group in optimizer.param_groups:</span><br><span class="line">        param_group[&#39;lr&#39;] &#x3D; lr</span><br></pre></td></tr></table></figure>
+
+<h4 id="Validation-Function"><a href="#Validation-Function" class="headerlink" title="Validation Function"></a>Validation Function</h4><p>与训练过程相同，唯一的区别是获取数据时需要设置<code>non_blocking=True</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">def validation(val_loader, model, criterion):</span><br><span class="line">    # switch to evaluate mode</span><br><span class="line">    model.eval()</span><br><span class="line">    </span><br><span class="line">    with torch.no_grad():</span><br><span class="line">        for i, (input, target) in enumerate(val_loader):</span><br><span class="line">            input &#x3D; input.cuda(non_blocking&#x3D;True)</span><br><span class="line">            target &#x3D; target.cuda(non_blocking&#x3D;True)</span><br><span class="line">            </span><br><span class="line">            # compute output</span><br><span class="line">            output &#x3D; model(input)</span><br><span class="line">            loss &#x3D; criterion(output, target)</span><br><span class="line">            </span><br><span class="line">            if i % 100 &#x3D;&#x3D; 0:</span><br><span class="line">                print(&#39;Test: [&#123;0&#125;&#x2F;&#123;1&#125;]\t&#39;</span><br><span class="line">                      &#39;Loss &#123;loss.val:.4f&#125; (&#123;loss.avg:.4f&#125;))&#39;.format(</span><br><span class="line">                       i, len(val_loader), loss&#x3D;losses))</span><br></pre></td></tr></table></figure>
+
+<h4 id="Inputs"><a href="#Inputs" class="headerlink" title="Inputs"></a>Inputs</h4><p>相对于标准模型训练，分布式训练在定义数据输入时也略有不同，有些参数为分布式训练任务特定的。参数说明如下：</p>
+<ul>
+<li><strong>batch_size</strong>-batch size for <em>each</em> process in the distributed training group. Total batch size across distributed model is batch_size*world_size</li>
+<li><strong>workers</strong> - number of worker processes used with the dataloaders in each process</li>
+<li><strong>num_epochs</strong> - total number of epochs to train for</li>
+<li><strong>starting_lr</strong> - starting learning rate for training</li>
+<li><strong>world_size</strong> - number of processes in the distributed training environment</li>
+<li><strong>dist_backend</strong> - backend to use for distributed training communication (i.e. NCCL, Gloo, MPI, etc.). In this tutorial, since we are using several multi-gpu nodes, NCCL is suggested.</li>
+<li><strong>dist_url</strong> - URL to specify the initialization method of the process group. This may contain the IP address and port of the rank0 process or be a non-existant file on a shared file system. Here, since we do not have a shared file system this will incorporate the <strong>node0-privateIP</strong> and the port on node0 to use.</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">print(&quot;Collect Inputs...&quot;)</span><br><span class="line"></span><br><span class="line"># Batch Size for training and testing</span><br><span class="line">batch_size &#x3D; 32</span><br><span class="line"></span><br><span class="line"># Number of additional worker processes for dataloading</span><br><span class="line">workers &#x3D; 2</span><br><span class="line"></span><br><span class="line"># Number of epochs to train for</span><br><span class="line">num_epochs &#x3D; 2</span><br><span class="line"></span><br><span class="line"># Starting Learning Rate</span><br><span class="line">starting_lr &#x3D; 0.1</span><br><span class="line"></span><br><span class="line"># Number of distributed processes</span><br><span class="line">world_size &#x3D; 4</span><br><span class="line"></span><br><span class="line"># Distributed backend type</span><br><span class="line">dist_backend &#x3D; &#39;nccl&#39;</span><br><span class="line"></span><br><span class="line"># Url used to setup distributed training</span><br><span class="line">dist_url &#x3D; &quot;tcp:&#x2F;&#x2F;172.31.22.234:23456&quot;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Initialize-process-group"><a href="#Initialize-process-group" class="headerlink" title="Initialize process group"></a>Initialize process group</h4><ol>
+<li><p>设置进程组。该过程可由函数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">torch.distributed.init_process_group</span><br></pre></td></tr></table></figure>
+
+<p>实现。函数的参数说明如下：</p>
+<ul>
+<li><strong>backend</strong>-the backend to use (i.e. NCCL, Gloo, MPI, etc.)</li>
+<li><strong>init_method</strong>-which is either a url containing the address and port of the rank0 machine or a path to a non-existant file on the shared file system. Note, to use the file init_method, all machines must have access to the file, similarly for the url method, all machines must be able to communicate on the network so make sure to configure any firewalls and network settings to accomodate.</li>
+<li><strong>rank</strong>-the rank of this process when run</li>
+<li><strong>world_size</strong>-the number of processes in the collective<br>The <em>init_method</em> input can also be “env://”. In this case, the address and port of the rank0 machine will be read from the following two environment variables respectively: MASTER_ADDR, MASTER_PORT. If <em>rank*and *world_size</em> arguments are not specified in the <em>init_process_group</em> function, they both can be read from the following two environment variables respectively as well: RANK, WORLD_SIZE.</li>
+</ul>
+</li>
+<li><p>设置进程的lock_rank。该操作用于为进程指定设备（即使用哪个GPU），同时也用于创建分布式数据并行模型时指定设备。</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">print(&quot;Initialize Process Group...&quot;)</span><br><span class="line"># Initialize Process Group</span><br><span class="line"># v1 - init with url</span><br><span class="line">dist.init_process_group(backend&#x3D;dist_backend, init_method&#x3D;dist_url, rank&#x3D;int(sys.argv[1]), world_size&#x3D;world_size)</span><br><span class="line"># v2 - init with file</span><br><span class="line"># dist.init_process_group(backend&#x3D;&quot;nccl&quot;, init_method&#x3D;&quot;file:&#x2F;&#x2F;&#x2F;home&#x2F;ubuntu&#x2F;pt-distributed-tutorial&#x2F;trainfile&quot;, rank&#x3D;int(sys.argv[1]), world_size&#x3D;world_size)</span><br><span class="line"># v3 - init with environment variables</span><br><span class="line"># dist.init_process_group(backend&#x3D;&quot;nccl&quot;, init_method&#x3D;&quot;env:&#x2F;&#x2F;&quot;, rank&#x3D;int(sys.argv[1]), world_size&#x3D;world_size)</span><br><span class="line"></span><br><span class="line"># Establish Local Rank and set device on this node</span><br><span class="line">local_rank &#x3D; int(sys.argv[2])</span><br><span class="line">dp_device_ids &#x3D; [local_rank]</span><br><span class="line">torch.cuda.set_device(local_rank)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Initialize-Model"><a href="#Initialize-Model" class="headerlink" title="Initialize Model"></a>Initialize Model</h4><p>在定义模型时，需要将其指定为分布式模式。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">print(&quot;Initialize Model...&quot;)</span><br><span class="line"># Construct Model</span><br><span class="line">model &#x3D; models.resnet18(pretrained&#x3D;False).cuda()</span><br><span class="line"># Make model DistributedDataParallel</span><br><span class="line">model &#x3D; torch.nn.parallel.DistributedDataParallel(model, device_ids&#x3D;dp_device_ids, output_device&#x3D;local_rank)</span><br><span class="line"></span><br><span class="line"># define loss function (criterion) and optimizer</span><br><span class="line">criterion &#x3D; nn.CrossEntropyLoss().cuda()</span><br><span class="line">optimizer &#x3D; torch.optim.SGD(model.parameters(), starting_lr, momentum&#x3D;0.9, weight_decay&#x3D;1e-4)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Initialize-Dataloaders"><a href="#Initialize-Dataloaders" class="headerlink" title="Initialize Dataloaders"></a>Initialize Dataloaders</h4><p>分布式训练的最后一个特定情况是将训练数据指定为DistributedSampler，与DistributedDataParallel模型结合使用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">print(&quot;Initialize Dataloaders...&quot;)</span><br><span class="line">transform &#x3D; transforms.Compose(</span><br><span class="line">    [transforms.Resize(224),</span><br><span class="line">     transforms.ToTensor(),</span><br><span class="line">     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])</span><br><span class="line"></span><br><span class="line"># Initialize Datasets. STL10 will automatically download if not present</span><br><span class="line">trainset &#x3D; datasets.STL10(root&#x3D;&#39;.&#x2F;data&#39;, split&#x3D;&#39;train&#39;, download&#x3D;True, transform&#x3D;transform)</span><br><span class="line">valset &#x3D; datasets.STL10(root&#x3D;&#39;.&#x2F;data&#39;, split&#x3D;&#39;test&#39;, download&#x3D;True, transform&#x3D;transform)</span><br><span class="line"></span><br><span class="line"># Create DistributedSampler to handle distributing the dataset across nodes when training</span><br><span class="line"># This can only be called after torch.distributed.init_process_group is called</span><br><span class="line">train_sampler &#x3D; torch.utils.data.distributed.DistributedSampler(trainset)</span><br><span class="line"></span><br><span class="line"># Create the Dataloaders to feed data to the training and validation steps</span><br><span class="line">train_loader &#x3D; torch.utils.data.DataLoader(trainset, batch_size&#x3D;batch_size, shuffle&#x3D;(train_sampler is None), num_workers&#x3D;workers, pin_memory&#x3D;False, sampler&#x3D;train_sampler)</span><br><span class="line">val_loader &#x3D; torch.utils.data.DataLoader(valset, batch_size&#x3D;batch_size, shuffle&#x3D;False, num_workers&#x3D;workers, pin_memory&#x3D;False)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Training-Loop"><a href="#Training-Loop" class="headerlink" title="Training Loop"></a>Training Loop</h4><p>开始训练，与标准模型训练唯一的不同的需要更新DistributedSampler的epoch。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">for epoch in range(num_epochs):</span><br><span class="line">    # Set epoch count for DistributedSampler</span><br><span class="line">    train_sampler.set_epoch(epoch)</span><br><span class="line">    </span><br><span class="line">    # Adjust learning rate according to schedule</span><br><span class="line">    adjust_learning_rate(starting_lr, optimizer, epoch)</span><br><span class="line">    </span><br><span class="line">    # train for one epoch</span><br><span class="line">    print(&quot;\nBegin Training Epoch &#123;&#125;&quot;.format(epoch+1))</span><br><span class="line">    train(train_loader, model, criterion, optimizer, epoch)</span><br><span class="line">    </span><br><span class="line">    # evaluate on validation set</span><br><span class="line">    print(&quot;Begin Validation @ Epoch &#123;&#125;&quot;.format(epoch+1))</span><br><span class="line">    validate(val_loader, model, criterion)</span><br></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>PyTorch中，分布式训练相对于标准训练主要有以下几点不同：</p>
+<ul>
+<li>更改输入数据的<code>non_blocking</code>属性。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">input &#x3D; input.cuda(non_blocking&#x3D;True)</span><br><span class="line">target &#x3D; target.cuda(non_blocking&#x3D;True)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>初始化进程组，设置local rank</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">dist.init_process_group(backend&#x3D;dist_backend, init_method&#x3D;dist_url, rank&#x3D;int(sys.argv[1]), world_size&#x3D;world_size)</span><br><span class="line"></span><br><span class="line"># Establish Local Rank and set device on this node</span><br><span class="line">local_rank &#x3D; int(sys.argv[2])</span><br><span class="line">dp_device_ids &#x3D; [local_rank]</span><br><span class="line">torch.cuda.set_device(local_rank)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>指定模型为分布式数据并行</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">model &#x3D; torch.nn.parallel.DistributedDataParallel(model, device_ids&#x3D;dp_device_ids, output_device&#x3D;local_rank)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>指定数据集为分布式样本</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">train_sampler &#x3D; torch.utils.data.distributed.DistributedSampler(trainset)</span><br></pre></td></tr></table></figure>
+
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference:"></a>Reference:</h3><ul>
+<li><a href="https://pytorch.org/tutorials/intermediate/dist_tuto.html#writing-distributed-applications-with-pytorch" target="_blank" rel="noopener">PYTORCH 1.0 DISTRIBUTED TRAINER WITH AMAZON AWS</a></li>
+<li><a href="https://github.com/seba-1511/dist_tuto.pth" target="_blank" rel="noopener">PyTorch Distributed Tutorial</a></li>
+<li><a href="https://github.com/pytorch/examples/tree/master/imagenet" target="_blank" rel="noopener">PyTorch ImageNet Example</a></li>
+<li><a href="https://blog.csdn.net/zwqjoy/article/details/89415933" target="_blank" rel="noopener">Pytorch 1.0 分布式训练初探</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/07/17/Paper-reading%20list/" rel="prev" title="Paper-reading list">
+      <i class="fa fa-chevron-left"></i> Paper-reading list
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/07/17/Finetuning%20with%20Tensorflow/" rel="next" title="Finetuning with Tensorflow">
+      Finetuning with Tensorflow <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Distributed-Training-Code"><span class="nav-number">1.</span> <span class="nav-text">Distributed Training Code</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Imports"><span class="nav-number">1.1.</span> <span class="nav-text">Imports</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Train-Function"><span class="nav-number">1.2.</span> <span class="nav-text">Train Function</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Validation-Function"><span class="nav-number">1.3.</span> <span class="nav-text">Validation Function</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Inputs"><span class="nav-number">1.4.</span> <span class="nav-text">Inputs</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Initialize-process-group"><span class="nav-number">1.5.</span> <span class="nav-text">Initialize process group</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Initialize-Model"><span class="nav-number">1.6.</span> <span class="nav-text">Initialize Model</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Initialize-Dataloaders"><span class="nav-number">1.7.</span> <span class="nav-text">Initialize Dataloaders</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Training-Loop"><span class="nav-number">1.8.</span> <span class="nav-text">Training Loop</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">3.</span> <span class="nav-text">Reference:</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Tramac"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Tramac</p>
+  <div class="site-description" itemprop="description">Tramac写字的地方</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Tramac" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Tramac" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tramac</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

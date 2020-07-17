@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="内存OpenCV使用内存存储器(memory storage)来统一管理各种动态对象的内存。内存存储器在底层被实现为一个有许多相同大小的内存块组成的双向链表，通过这种结构，OpenCV可以从内存存储器中快速的分配内存或将内存返回给内存存储器。内存存储器可以通过以下四个函数访问： 12345678&#x2F;&#x2F; 创建一个内存存储器CvMemStorage* cvCreateMemStora">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第8章 轮廓">
+<meta property="og:url" content="http://yoursite.com/2020/07/17/%E7%AC%AC8%E7%AB%A0%20%E8%BD%AE%E5%BB%93/index.html">
+<meta property="og:site_name" content="Tramac">
+<meta property="og:description" content="内存OpenCV使用内存存储器(memory storage)来统一管理各种动态对象的内存。内存存储器在底层被实现为一个有许多相同大小的内存块组成的双向链表，通过这种结构，OpenCV可以从内存存储器中快速的分配内存或将内存返回给内存存储器。内存存储器可以通过以下四个函数访问： 12345678&#x2F;&#x2F; 创建一个内存存储器CvMemStorage* cvCreateMemStora">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-07-17T06:26:12.092Z">
+<meta property="article:modified_time" content="2020-07-17T06:26:12.092Z">
+<meta property="article:author" content="Tramac">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/07/17/%E7%AC%AC8%E7%AB%A0%20%E8%BD%AE%E5%BB%93/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>第8章 轮廓 | Tramac</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Tramac" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Tramac</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/07/17/%E7%AC%AC8%E7%AB%A0%20%E8%BD%AE%E5%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Tramac">
+      <meta itemprop="description" content="Tramac写字的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tramac">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          第8章 轮廓
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-17 14:26:12" itemprop="dateCreated datePublished" datetime="2020-07-17T14:26:12+08:00">2020-07-17</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="内存"><a href="#内存" class="headerlink" title="内存"></a>内存</h4><p>OpenCV使用内存存储器(memory storage)来统一管理各种<strong>动态</strong>对象的内存。内存存储器在底层被实现为一个有许多相同大小的内存块组成的双向链表，通过这种结构，OpenCV可以从内存存储器中快速的分配内存或将内存返回给内存存储器。<br>内存存储器可以通过以下四个函数访问：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 创建一个内存存储器</span><br><span class="line">CvMemStorage* cvCreateMemStorage(int block_size&#x3D;0);</span><br><span class="line">&#x2F;&#x2F; 释放内存存储器中分配的内存</span><br><span class="line">void cvReleaseMemStorage(CvMemStorage** storage);</span><br><span class="line">&#x2F;&#x2F; 清空内存存储器</span><br><span class="line">void cvClearMemStorage(CvMemStorage* storage);</span><br><span class="line">&#x2F;&#x2F; 从一个内存存储器中申请空间</span><br><span class="line">void* cvMemStorageAlloc(CvMemStorage* storage, size_t size);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="序列"><a href="#序列" class="headerlink" title="序列"></a>序列</h4><p>序列是内存存储器中可以存储的一种对象。序列是某种结构的链表。OpenCV中序列可以存储多种不同的结构。序列在内存被实现为一个双端队列(deque)。因此，序列可以实现快速的随机访问，以及快速删除顶端的元素，但是从中间删除元素则稍慢些。<br>结构CVSeq的定义：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">typedef struct CvSeq&#123;</span><br><span class="line">    int flags;</span><br><span class="line">    int header_size;</span><br><span class="line">    CvSeq* h_prev;	&#x2F;&#x2F; 指向前一序列</span><br><span class="line">    CvSeq* h_next;	&#x2F;&#x2F; 指向下一序列</span><br><span class="line">    CvSeq* v_prev;</span><br><span class="line">    CvSeq* v_next;</span><br><span class="line">    int total;</span><br><span class="line">    int elem_size;</span><br><span class="line">    char* block_max;</span><br><span class="line">    char* ptr;</span><br><span class="line">    int delta_elems;</span><br><span class="line">    CvMemStorage* storage;</span><br><span class="line">    CvSeqBlock* free_blocks;</span><br><span class="line">    CvSeqBlock* first;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>创建序列</strong></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 序列分配函数</span><br><span class="line">CvSeq* cvCreateSeq(</span><br><span class="line">    int seq_flags,	&#x2F;&#x2F; 组织数据的方式</span><br><span class="line">    int header_size,	&#x2F;&#x2F; 序列的头大小</span><br><span class="line">    int elem_size,	&#x2F;&#x2F; 序列要存储的元素的大小</span><br><span class="line">    CvMemStorage* storage	&#x2F;&#x2F; 指定内存存储器</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>删除序列</strong></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 清空序列中的所有元素</span><br><span class="line">void cvClearSeq(CvSeq* seq);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>直接访问序列中的元素</strong></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 随机访问某个元素</span><br><span class="line">char* cvGetSeqElem(seq, index);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 打印序列中的所有碘元素</span><br><span class="line">for (int i &#x3D; 0; i &lt; seq-&gt;total; ++i) &#123;</span><br><span class="line">    CvPoint* p &#x3D; (CvPoint*)cvGetSeqElem(seq, i);</span><br><span class="line">    printf(&quot;(%d, %d)\n&quot;, p-&gt;x, p-&gt;y);</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F; 检测一个元素是否在序列中</span><br><span class="line">int cvSeqElemIdx(</span><br><span class="line">    const CvSeq* seq,</span><br><span class="line">    const void* element,</span><br><span class="line">    CvSeqBlock** block&#x3D;NULL</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>切片、复制和移动序列中的数据</strong></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 深度复制一个序列，并创建一个完全独立的序列结构</span><br><span class="line">CvSeq* cvCloneSeq(</span><br><span class="line">    const CvSeq* seq,</span><br><span class="line">    CvMemStorage* storage&#x3D;NULL</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 复制一个序列的子序列，或者仅为子序列创建一个头，和原来序列共用元素空间</span><br><span class="line">CvSeq* cvSeqSlice(</span><br><span class="line">    const CvSeq* seq,</span><br><span class="line">    CvSlice slice,</span><br><span class="line">    CvMemStorage* storage&#x3D;NULL,</span><br><span class="line">    int copy_data&#x3D;0</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 删除序列</span><br><span class="line">void cvSeqRemoveSlice(</span><br><span class="line">    CvSeq* seq,</span><br><span class="line">    CvSlice slice</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 添加序列</span><br><span class="line">void cvSeqInsertSlice(</span><br><span class="line">    CvSeq* seq,</span><br><span class="line">    int before_index,</span><br><span class="line">    const CvArr* from_arr</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 通过比较函数，对序列中的元素进行排序，或搜索一个序列</span><br><span class="line">&#x2F;&#x2F; 函数原型</span><br><span class="line">typedef int (*CvCmpFunc)(const void* a, const void* b, void* userdata);</span><br><span class="line">&#x2F;&#x2F; 对序列排序</span><br><span class="line">void cvSeqSort(</span><br><span class="line">    CvSeq* seq,</span><br><span class="line">    CvCmpFunc func,</span><br><span class="line">    void* userdata&#x3D;NULL</span><br><span class="line">);</span><br><span class="line">char* cvSeqSearch(</span><br><span class="line">    CvSeq* seq,</span><br><span class="line">    const void* elem,</span><br><span class="line">    CvCmpFunc func,</span><br><span class="line">    int is_sorted,</span><br><span class="line">    int* elem_idx,</span><br><span class="line">    void* userdata&#x3D;NULL</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 对序列进行逆序操作</span><br><span class="line">void cvSeqInvert(CvSeq* seq);</span><br><span class="line">&#x2F;&#x2F; 拆分序列</span><br><span class="line">int cvSeqPartition(</span><br><span class="line">    const CvSeq* seq,</span><br><span class="line">    CvMemStorage* storage,</span><br><span class="line">    CvSeq** labels,</span><br><span class="line">    CvCmpFunc is_equal,</span><br><span class="line">    void* userdata</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>将序列作为栈来使用</strong></li>
+</ul>
+<p>序列内部实现是一个双端队列。因此，我们可以高效地从序列的任意一段访问序列，这样我们可以将学列当做一个栈使用。<br>下面给出一些关于栈使用的函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">char* cvSeqPush(CvSeq* seq, void* element&#x3D;NULL);</span><br><span class="line">char* cvSeqPushFront(CvSeq* seq, void* element&#x3D;NULL);</span><br><span class="line">void cvSeqPop(CvSeq* seq, void* element&#x3D;NULL);</span><br><span class="line">void cvSeqPopFront(CvSeq* seq, void* element&#x3D;NULL);</span><br><span class="line">void cvSeqPushMulti(CvSeq* seq, void* elements, int count, int in_front&#x3D;0);</span><br><span class="line">void cvSeqPopMulti(CvSeq* seq, void* elements, int count, int in_front&#x3D;0);</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>插入和删除元素</strong></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">char* cvSeqInsert(CvSeq* seq, int before_index), void* element&#x3D;NULL;</span><br><span class="line">void cvSeqRemove(CvSeq* seq, int index);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>序列中块的大小</strong></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 改变块的大小</span><br><span class="line">void cvSetSeqBlockSize(CvSeq* seq, int delta_elems);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>序列的读取和写入</strong></li>
+</ul>
+<p>当使用序列时，如果需要最高的性能，可以使用一些特殊的函数修改序列。这些函数通过专门的结构来保存序列的当前状态，这样使得很多后续操作都可以在更短的时间内完成。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 初始化序列写结构CvSeqWriter</span><br><span class="line">void cvStartWriteSeq(</span><br><span class="line">    int seq_flags,</span><br><span class="line">    int header_size,</span><br><span class="line">    int elem_size,</span><br><span class="line">    CvMemStorage* storage,</span><br><span class="line">    CvSeqWriter* writer</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 初始化写状态结构到序列的末尾</span><br><span class="line">void cvStartAppendToSeq(CvSeq* seq, CvSeqWriter* writer);</span><br><span class="line">&#x2F;&#x2F; 关闭写状态，使得写入生效</span><br><span class="line">CvSeq* cvEndWriteSeq(CvSeqWriter* writer);</span><br><span class="line">&#x2F;&#x2F; 刷新写操作</span><br><span class="line">void cvFlushSeqWriter(CvSeqWriter* writer);</span><br><span class="line">&#x2F;&#x2F; 写入元素</span><br><span class="line">CV_WRITE_SEQ_ELEM(elem, writer);</span><br><span class="line">CV_WRITE_SEQ_ELEM_VAR(elem_ptr, writer);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>与之对应的读操作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 初始化读结构</span><br><span class="line">void cvStartReadSeq(</span><br><span class="line">    const CvSeq* seq,</span><br><span class="line">    CvSeqReader* reader,</span><br><span class="line">    int reverse&#x3D;0</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 返回读状态在序列中当前的位置</span><br><span class="line">int cvGetSeqReaderPos(CvSeqReader* reader);</span><br><span class="line">&#x2F;&#x2F; 设置读操作的新位置</span><br><span class="line">void cvSetSeqReaderPos(CvSeqReader* reader, int index, int is_relative&#x3D;0);</span><br><span class="line">&#x2F;&#x2F; 读取元素</span><br><span class="line">CV_NEXT_SEQ_ELEM(elem_size, reader);</span><br><span class="line">CV_PREV_SEQ_ELEM(elem_size, reader);</span><br><span class="line">CV_READ_SEQ_ELEM(elem, reader);</span><br><span class="line">CV_REV_READ_SEQ_ELEM(elem, reader);</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>序列和数组</strong></li>
+</ul>
+<p>有时候可能需要将序列转换成数组。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 复制序列的全部或部分到一个连续内存数组中</span><br><span class="line">void* cvCvtSeqToArray(</span><br><span class="line">    const CvSeq* seq,</span><br><span class="line">    void* elements,</span><br><span class="line">    CvSlice slice&#x3D;CV_WHOLE_SEQ</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 将数组转换为序列</span><br><span class="line">CvSeq* cvMakeSeqHeaderForArray(</span><br><span class="line">    int seq_type,</span><br><span class="line">    int header_size,</span><br><span class="line">    int elem_size,</span><br><span class="line">    void* elements,</span><br><span class="line">    int total,</span><br><span class="line">    CvSeq* seq,</span><br><span class="line">    CvSeqBlock* block</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="查找轮廓"><a href="#查找轮廓" class="headerlink" title="查找轮廓"></a>查找轮廓</h4><p>一个轮廓一般对应一系列的点，也就是图像中的一条曲线。表示方法可能根据不同情况而有所不同。有多种方法可以表示曲线。在OpenCV中一般用序列来存储轮廓信息。序列中的每一个元素是曲线中一个点的位置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 寻找轮廓函数</span><br><span class="line">int cvFindContours(</span><br><span class="line">    IplImage* img,</span><br><span class="line">    CvMemStorage* storage,</span><br><span class="line">    CvSeq** firstContour,</span><br><span class="line">    int headerSize&#x3D;sizeof(CvContour),</span><br><span class="line">    CvContourRetrievalMode mode&#x3D;CV_RETR_LIST,</span><br><span class="line">    CvChainApproxMethod method&#x3D;CV_CHAIN_APPROX_SIMPLE</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>使用序列表示轮廓</strong></li>
+</ul>
+<p>序列中保存一系列的点，这些点构成轮廓。轮廓是点的序列，可以用来表示图像空间中的曲线。<br>常用的处理函数:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 与CVFindContours()类似，不过每次返回一个轮廓</span><br><span class="line">CvContourScanner cvStartFindContours(</span><br><span class="line">    CvArr* image,</span><br><span class="line">    CvMemStorage* storage,</span><br><span class="line">    int header_size&#x3D;sizeof(CvContour),</span><br><span class="line">    int mode&#x3D;CV_RETR_LIST,</span><br><span class="line">    int method&#x3D;CV_CHAIN_APPROX_SIMPLE,</span><br><span class="line">    CvPoint offset&#x3D;cvPoint(0,0)</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 查找下一个轮廓</span><br><span class="line">CvSeq* cvFindNextContour(CvContourScanner scanner);</span><br><span class="line">&#x2F;&#x2F; 轮廓替换</span><br><span class="line">void cvSubstituteContour(CvContourScanner scanner, CvSeq* new_counter);</span><br><span class="line">&#x2F;&#x2F; 结束查找</span><br><span class="line">CvSeq* cvEndFindContour(CvContourScanner* scanner);</span><br><span class="line">&#x2F;&#x2F; 将Freeman链转换为多边形表示</span><br><span class="line">CvSeq* cvApproxChains(</span><br><span class="line">    CvSeq* src_seq,</span><br><span class="line">    CvMemStorage* storage,</span><br><span class="line">    int method&#x3D;CV_CHAIN_APPROX_SIMPLE,</span><br><span class="line">    double parameter&#x3D;0,</span><br><span class="line">    int minimal_perimeter&#x3D;0,</span><br><span class="line">    int recursive&#x3D;0</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>Freeman链码</strong></li>
+</ul>
+<p>一般情况下，通过cvFindContours获取的轮廓是一系列顶点的序列。另一种表达方法是当mehod设置为CV_CHAIN_CODE时，生成的轮廓是通过Freeman链码的方式返回。在Freeman链码中，多边形被表示为一系列的位移，每一个位移有8个方向，使用0-7表示。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 初始化Freeman链cvChainPtReader结构</span><br><span class="line">void cvStartReadChainPoints(CvChain* chain, CvChainPtReader* reader);</span><br><span class="line">&#x2F;&#x2F; 读取链码中的每个点</span><br><span class="line">CvPoint cvReadChainPoint(CvChainPtReader* reader);</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>绘制轮廓</strong></li>
+</ul>
+<p>一个经常用到的功能是在屏幕上绘制检测到的轮廓。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">void cvDrawContours(</span><br><span class="line">    CvArr* img,</span><br><span class="line">    CvSeq* contour,</span><br><span class="line">    CvScalar external_color,</span><br><span class="line">    CvScalar holo_color,</span><br><span class="line">    int max_level,</span><br><span class="line">    int thickness&#x3D;1,</span><br><span class="line">    int line_type&#x3D;8,</span><br><span class="line">    CvPoint offset&#x3D;cvPoint(0, 0)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="深入分析轮廓"><a href="#深入分析轮廓" class="headerlink" title="深入分析轮廓"></a>深入分析轮廓</h4><p>当分析一个图像的时候，针对轮廓常用的操作有识别和处理，另外相关的还有多种对轮廓的处理，如简化或拟合轮廓，匹配轮廓到模板。</p>
+<ul>
+<li><strong>多边形逼近</strong></li>
+</ul>
+<p>当我们绘制一个多边形或者进行形状分析的时候，通常需要使用多边形逼近一个轮廓，使得定点数目变少。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 轮廓逼近函数</span><br><span class="line">CvSeq* cvApproxPoly(</span><br><span class="line">    const void* src_seq,</span><br><span class="line">    int header_size,</span><br><span class="line">    CvMemStorage* storage,</span><br><span class="line">    int method,</span><br><span class="line">    double parameter,</span><br><span class="line">    int recursive&#x3D;0</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 寻找关键点函数</span><br><span class="line">CvSeq* cvFindDominantPoints(</span><br><span class="line">    CvSeq* contour,</span><br><span class="line">    CvMemStorage* storage,</span><br><span class="line">    int method&#x3D;CV_DOMINANT_IPAN,</span><br><span class="line">    double parameter1&#x3D;0,</span><br><span class="line">    double parameter2&#x3D;0,</span><br><span class="line">    double parameter3&#x3D;0,</span><br><span class="line">    double parameter4&#x3D;0,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>特性概括</strong></li>
+</ul>
+<p>轮廓处理中经常遇到的另一个任务是计算一些轮廓变化的概括特性。这可能包含长度或其他一些反映轮廓整体大小的度量。另一个有用的特性是轮廓矩，可以用来概括轮廓的总形状特性。<br><strong>长度</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 计算轮廓的长度</span><br><span class="line">double cvArcLength(const void* curve, CvSlice slice&#x3D;CV_WHOLE_SEQ, int is_closed&#x3D;-1);</span><br><span class="line">&#x2F;&#x2F; 计算轮廓的面积</span><br><span class="line">double cvContourArea(const CvArr* contour, CvSlice slice&#x3D;CV_WHOLE_SEQ);</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>边界框</strong><br>长度和面积只是轮廓的简单特性，更复杂一些的特性描述应该是矩形边界框，圆形边界框或椭圆边界框。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 获取矩形边界框</span><br><span class="line">CvRect cvBoundingRect(CvArr* points, int update&#x3D;0);</span><br><span class="line">&#x2F;&#x2F; 获取一个包围轮廓最小的长方形</span><br><span class="line">CvBox2D cvMInAreaRect2(const CvArr* points, cvMemStorage* storage&#x3D;NULL);</span><br><span class="line">&#x2F;&#x2F; CvBox2D结构体的定义</span><br><span class="line">typedef struct CvBox2D(</span><br><span class="line">    CvPoint2D32f center;</span><br><span class="line">    CvSize2D32f size;</span><br><span class="line">    float angle;</span><br><span class="line">) cvBox2D;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>圆形和椭圆形边界</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 获取圆形外接圆</span><br><span class="line">int cvMInEnclosingCircle(</span><br><span class="line">    const CvArr* points,</span><br><span class="line">    CvPoint2D32f* center,</span><br><span class="line">    float* radius</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 获取最佳拟合椭圆</span><br><span class="line">CvBox2D cvFitEllipse2(const CvArr* points);</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>几何</strong></li>
+</ul>
+<p>在处理CVBox2D或多边形边界的时候，经常需要进行多边形以及边界框的重叠判断。下面是一些常用的函数:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 根据输入的2个矩形计算，得出最小外包矩形</span><br><span class="line">CvRect cvMaxRect(const CvRect* rect1, const CvRect* rect2);</span><br><span class="line">&#x2F;&#x2F; 计算矩形的四个顶点</span><br><span class="line">void cvBOxPoints(CvBox2D box, CvPoint2D32f pt[4]);</span><br><span class="line">&#x2F;&#x2F; 从mat中初始化序列</span><br><span class="line">CvSeq* cvPointSeqFromMat(</span><br><span class="line">    int seq_kind,</span><br><span class="line">    const CvArr* mat,</span><br><span class="line">    CvContour* contour_header,</span><br><span class="line">    CvSeqBlock* block</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 测试一个点是否在多边形内部</span><br><span class="line">double cvPointPolygonTest(</span><br><span class="line">    const CvArr* contour,</span><br><span class="line">    CvPoint2D32f pt,</span><br><span class="line">    int measure_dist</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="轮廓的匹配"><a href="#轮廓的匹配" class="headerlink" title="轮廓的匹配"></a>轮廓的匹配</h4><p>在实际应用中，一个跟轮廓相关的最常用到的功能是匹配两个轮廓。如果有两个轮廓，如何比较它们；或者如何比较一个轮廓和一个抽象模板。</p>
+<ul>
+<li><strong>矩</strong></li>
+</ul>
+<p>比较两个轮廓最简洁的方式是比较它们的轮廓矩。简单的说，矩是通过对轮廓上所有点进行积分运算而得到的一个粗略特征。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 计算轮廓矩</span><br><span class="line">void cvContoursMoments(CvSeq* contour, CvMoments* moments);</span><br><span class="line">&#x2F;&#x2F; 用于保存结果的CvMoments结构的定义</span><br><span class="line">typedef struct CvMoments&#123;</span><br><span class="line">    double m00, m10, m01, m20, m11, m02, m30, m21, m12, m03;</span><br><span class="line">    double mu20, mu11, mu02, mu30, mu21, mu12, mu03;</span><br><span class="line">    double inv_sqrt_m00;</span><br><span class="line">&#125; CvMoments;</span><br><span class="line">&#x2F;&#x2F; 获取特定的矩</span><br><span class="line">double cvGetSpatialMoment(CvMoments* moments, int x_order, int y_order);</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>再论矩</strong></li>
+</ul>
+<p>直接计算得到的矩并不是做比较时最好的参数。具体来说，经常会用到的是归一化的矩，因此，不同大小但是形状相同的物体会有相同的值，并且不依赖于坐标系的选择。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 计算图像的矩</span><br><span class="line">void cvMoments(const CvArr* image, CvMoments* moments, int isBinary&#x3D;0);</span><br><span class="line">&#x2F;&#x2F; 计算中心距</span><br><span class="line">double cvGetCentralMoment(CvMomens* moments, int x_order, int y_order);</span><br><span class="line">&#x2F;&#x2F; 计算归一化矩</span><br><span class="line">double cvGetNormalizedCentralMoment(CvMomens* moments, int x_order, int y_order);</span><br><span class="line">&#x2F;&#x2F; 计算Hu不变矩</span><br><span class="line">void cvGetHuMoments(CvMoments* moments, CvHuMoments* HuMoments);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Hu矩是归一化中心矩的线性组合。之所以这样做是为了能够获取代表图像某个特征的矩函数，这些矩函数对某些变化如缩放、旋转和镜像映射具有不变形。</p>
+<ul>
+<li><strong>使用Hu矩进行匹配</strong></li>
+</ul>
+<p>很自然，使用Hu矩我们想要比较两个物体并且判明它们是否相似。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 比较函数</span><br><span class="line">double cvMatchShapes(</span><br><span class="line">    const void* object1,</span><br><span class="line">    const void* object2,</span><br><span class="line">    int method,</span><br><span class="line">    double parameter&#x3D;0</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>提供的物体可以是灰度图像也可以是轮廓。如果是图像，会根据指定的方法先计算矩。</p>
+<ul>
+<li><strong>等级匹配</strong></li>
+</ul>
+<p>有时，简单的相似度度量(比如矩)并不足够，所以就引出了轮廓树。轮廓树是用来描述一个特定形状内各部分的等级。编码得到的二分轮廓树包含了原始轮廓的形状信息，一旦被建立，就可以很有效的对比两个轮廓。这个过程开始定义两个树节点的对应关系，然后比较对应节点的特性。最后的结果就是两个树的相似度。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 从轮廓生成轮廓树</span><br><span class="line">CvContourTree* cvCreateContourTree(</span><br><span class="line">    const CvSeq* contour,</span><br><span class="line">    CvMemStorage* storage,</span><br><span class="line">    double threshold</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 从轮廓树生成轮廓</span><br><span class="line">CvSeq* cvContourFromContourTree(</span><br><span class="line">    const CvContourTree* tree,</span><br><span class="line">    CvMemStorage* storage,</span><br><span class="line">    CvTermCriteria criteria</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 轮廓树匹配</span><br><span class="line">double cvMatchContourTrees(</span><br><span class="line">    const CvContourTree* tree1,</span><br><span class="line">    const CvContourTree* tree2,</span><br><span class="line">    int method,</span><br><span class="line">    double threshold</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong>轮廓的凸包和凸缺陷</strong></li>
+</ul>
+<p>另一个理解物体形状或轮廓的有用的方法是计算一个物体的凸包然后计算其凸缺陷。很多复杂物体的特性能很好的被这种缺陷表现出来。<br>下面是是三个关于凸包和凸缺陷的重要函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">#define CV_CLOCKWISE 1</span><br><span class="line">#define CV_COUNTER_CLOCKWISE 2</span><br><span class="line">&#x2F;&#x2F; 计算已知轮廓的凸包</span><br><span class="line">CvSeq* cvConvexHull2(</span><br><span class="line">    const CvArr* input,</span><br><span class="line">    void* hull_storage&#x3D;NULL,</span><br><span class="line">    int orientation&#x3D;CV_CLOCKWISE,</span><br><span class="line">    int return_points&#x3D;0</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 检查一个已知轮廓是否是凸的</span><br><span class="line">int cvCheckContourConvexity(const CvArr* contour);</span><br><span class="line">&#x2F;&#x2F; 在已知轮廓是凸包的情况下计算凸缺陷</span><br><span class="line">CvSeq* cvConvexityDefects(&#39;</span><br><span class="line">    const CvArr* contour,</span><br><span class="line">    const CvArr* convexhull,</span><br><span class="line">    CvMemStorage* storage&#x3D;NULL</span><br><span class="line">);</span><br><span class="line">&#x2F;&#x2F; 缺陷结构体的描述</span><br><span class="line">typedef struct CvConvexityDefect&#123;</span><br><span class="line">    CvPoint* start;</span><br><span class="line">    CvPoint* end;</span><br><span class="line">    CvPoint* depth_point;</span><br><span class="line">    float depth;</span><br><span class="line">&#125; CvConvexityDefect;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><p><strong>成对几何直方图</strong></p>
+<p>Freeman链码编码是对一个多边形的序列如何“移动”的描述，每个这样的移动有固定的长度和特定的方向。Freeman链码编码的用处很多，因为它支持了成对几何直方图(PGH)的基本思想。<br>PGH实际上是链码编码直方图(CCH)的一个扩展或延伸。CCH是一种直方图，用来统计一个轮廓Freeman链码编码每一种走法的数字。该直方图有旋转不变形的性质。<br>PGH的使用和FCC相似，一个重要的不同是，PGH的描述能力更强，因此在尝试解决复杂问题的时候很有用，比如说大量的形状需要被辨识，并且或者有很多背景噪声的时候。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 计算PGH的函数</span><br><span class="line">void cvCalaPGH(const CvSeq* contour, CvHistogram* hist);</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/07/17/%E7%AC%AC7%E7%AB%A0%20%E7%9B%B4%E6%96%B9%E5%9B%BE%E4%B8%8E%E5%8C%B9%E9%85%8D/" rel="prev" title="第7章 直方图与匹配">
+      <i class="fa fa-chevron-left"></i> 第7章 直方图与匹配
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/07/17/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/" rel="next" title="第9章 图像局部与分割">
+      第9章 图像局部与分割 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#内存"><span class="nav-number">1.</span> <span class="nav-text">内存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#序列"><span class="nav-number">2.</span> <span class="nav-text">序列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查找轮廓"><span class="nav-number">3.</span> <span class="nav-text">查找轮廓</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#深入分析轮廓"><span class="nav-number">4.</span> <span class="nav-text">深入分析轮廓</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#轮廓的匹配"><span class="nav-number">5.</span> <span class="nav-text">轮廓的匹配</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Tramac"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Tramac</p>
+  <div class="site-description" itemprop="description">Tramac写字的地方</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Tramac" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Tramac" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tramac</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
