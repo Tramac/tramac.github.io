@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://tramac.github.io/"/>
-  <updated>2020-07-20T06:15:06.486Z</updated>
+  <updated>2020-07-20T14:57:59.812Z</updated>
   <id>http://tramac.github.io/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Talk-learning</title>
+    <link href="http://tramac.github.io/2020/07/20/Talk-learning/"/>
+    <id>http://tramac.github.io/2020/07/20/Talk-learning/</id>
+    <published>2020-07-20T14:31:58.000Z</published>
+    <updated>2020-07-20T14:57:59.812Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h3><ul><li><input checked="" disabled="" type="checkbox"> 自动驾驶中的视觉技术&lt;<a href="https://www.techbeat.net/talks/MTU5NTI1NTY5NjMzMC0xNjMtNjY2OA==" target="_blank" rel="noopener">Talk</a>&gt;<ul><li>Levels of Driving: L1-L5</li><li>Techniques(L3): High precision map/LiDAR</li><li>Outlines: Stereo/Motion/Detection&amp;Tracking/Scene Understanding/Localization and Mapping(SLAM)<a id="more"></a></li></ul></li></ul>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;TODO&quot;&gt;&lt;a href=&quot;#TODO&quot; class=&quot;headerlink&quot; title=&quot;TODO&quot;&gt;&lt;/a&gt;TODO&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;input checked=&quot;&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; 自动驾驶中的视觉技术&amp;lt;&lt;a href=&quot;https://www.techbeat.net/talks/MTU5NTI1NTY5NjMzMC0xNjMtNjY2OA==&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Talk&lt;/a&gt;&amp;gt;&lt;ul&gt;
+&lt;li&gt;Levels of Driving: L1-L5&lt;/li&gt;
+&lt;li&gt;Techniques(L3): High precision map/LiDAR&lt;/li&gt;
+&lt;li&gt;Outlines: Stereo/Motion/Detection&amp;amp;Tracking/Scene Understanding/Localization and Mapping(SLAM)
+    
+    </summary>
+    
+    
+      <category term="Deep Learning" scheme="http://tramac.github.io/categories/Deep-Learning/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>工作一年后想说的话</title>
