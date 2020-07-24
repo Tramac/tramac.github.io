@@ -39,7 +39,7 @@
   <entry>
     <title>Pytorch有哪些坑？</title>
     <url>/2020/07/23/Pytorch%E6%9C%89%E5%93%AA%E4%BA%9B%E5%9D%91%EF%BC%9F/</url>
-    <content><![CDATA[<h3 id="torchvision-transform-ToTensor-中的细节"><a href="#torchvision-transform-ToTensor-中的细节" class="headerlink" title="torchvision.transform.ToTensor()中的细节"></a>torchvision.transform.ToTensor()中的细节</h3><p>1.把一个取值范围是<code>[0,255]</code>的<code>PIL.Image</code>或者<code>shape</code>为<code>(H,W,C)</code>的<code>numpy.ndarray</code>,转换成形状为<code>(C,H,W)</code>，取值范围是<code>[0,1.0]</code>的<code>torch.FloatTensor</code>。</p>
+    <content><![CDATA[<h3 id="1-torchvision-transform-ToTensor-中的细节"><a href="#1-torchvision-transform-ToTensor-中的细节" class="headerlink" title="1 torchvision.transform.ToTensor()中的细节"></a>1 torchvision.transform.ToTensor()中的细节</h3><p>功能：把一个取值范围是<code>[0,255]</code>的<code>PIL.Image</code>或者<code>shape</code>为<code>(H,W,C)</code>的<code>numpy.ndarray</code>,转换成形状为<code>(C,H,W)</code>，取值范围是<code>[0,1.0]</code>的<code>torch.FloatTensor</code>。</p>
 <p>注意：只有当<code>numpy.ndarray</code>的<code>dtype=unit8</code>时才会将像素值scale到<code>[0,1.0]</code>。</p>
 <a id="more"></a>
 
