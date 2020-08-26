@@ -4,7 +4,7 @@
     <title>Paper-reading List</title>
     <url>/2018/11/18/paper-reading-list/</url>
     <content><![CDATA[<h2 id="Video-Understanding"><a href="#Video-Understanding" class="headerlink" title="Video Understanding"></a>Video Understanding</h2><ul>
-<li><input disabled="" type="checkbox"> Accuracy and Performance Comparison of Video Action Recognition Approaches-HPEC2020&lt;<a href="https://arxiv.org/pdf/2008.09037.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
+<li><input checked="" disabled="" type="checkbox"> Accuracy and Performance Comparison of Video Action Recognition Approaches-HPEC2020&lt;<a href="https://arxiv.org/pdf/2008.09037.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
 <li><input disabled="" type="checkbox"> What Makes Training Multi-Modal Classification Networks Hard?-CVPR2020&lt;<a href="https://arxiv.org/pdf/1905.12681.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
 <li><input disabled="" type="checkbox"> [<strong>DMASum</strong>] Query Twice: Dual Mixture Attention Meta Learning for Video Summarization-ACM2020&lt;<a href="https://arxiv.org/pdf/2008.08360.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
 <li><input disabled="" type="checkbox"> [<strong>CHAN</strong>] Convolutional Hierarchical Attention Network for Query-Focused Video Summarization&lt;<a href="https://arxiv.org/pdf/2002.03740.pdf" target="_blank" rel="noopener">Paper</a>&gt;&lt;<a href="https://github.com/ckczzj/AAAI2020" target="_blank" rel="noopener">Code-Pytorch</a>&gt;</li>
