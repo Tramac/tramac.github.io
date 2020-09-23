@@ -1003,7 +1003,6 @@
 </ul>
 <a id="more"></a>
 
-
 <ul>
 <li><input checked="" disabled="" type="checkbox"> 深度图像检索前沿技术与实际应用&lt;<a href="https://www.techbeat.net/talks/MTU5NTU5MDI2ODUxOC0xNzEtNTY0Mg==" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Defining Image Retrieval:</strong> Given an image query, generate a rank of all similar images.<br><strong>Defining instance retrieval:</strong> Given a target object of image query, generate a rank of all images containing the target object.<br><strong>Retrieval pipeline:</strong> Query image—Image Representations—Image Matching—Ranking List—Spatial Re-ranking/Query Expansion </li>
 </ul>
