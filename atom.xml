@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://tramac.github.io/"/>
-  <updated>2020-09-11T07:12:06.416Z</updated>
+  <updated>2020-09-23T12:19:16.465Z</updated>
   <id>http://tramac.github.io/</id>
   
   <author>
@@ -15,6 +15,21 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>talk-learning</title>
+    <link href="http://tramac.github.io/2020/09/23/talk-learning/"/>
+    <id>http://tramac.github.io/2020/09/23/talk-learning/</id>
+    <published>2020-09-23T12:19:16.000Z</published>
+    <updated>2020-09-23T12:19:16.465Z</updated>
+    
+    <summary type="html">
+    
+    </summary>
+    
+    
+    
+  </entry>
   
   <entry>
     <title>audio-video</title>
@@ -53,28 +68,6 @@
     
       &lt;h3 id=&quot;1-torchvision-transform-ToTensor-中的细节&quot;&gt;&lt;a href=&quot;#1-torchvision-transform-ToTensor-中的细节&quot; class=&quot;headerlink&quot; title=&quot;1 torchvision.transform.ToTensor()中的细节&quot;&gt;&lt;/a&gt;1 torchvision.transform.ToTensor()中的细节&lt;/h3&gt;&lt;p&gt;功能：把一个取值范围是&lt;code&gt;[0,255]&lt;/code&gt;的&lt;code&gt;PIL.Image&lt;/code&gt;或者&lt;code&gt;shape&lt;/code&gt;为&lt;code&gt;(H,W,C)&lt;/code&gt;的&lt;code&gt;numpy.ndarray&lt;/code&gt;,转换成形状为&lt;code&gt;(C,H,W)&lt;/code&gt;，取值范围是&lt;code&gt;[0,1.0]&lt;/code&gt;的&lt;code&gt;torch.FloatTensor&lt;/code&gt;。&lt;/p&gt;
 &lt;p&gt;注意：只有当&lt;code&gt;numpy.ndarray&lt;/code&gt;的&lt;code&gt;dtype=unit8&lt;/code&gt;时才会将像素值scale到&lt;code&gt;[0,1.0]&lt;/code&gt;。&lt;/p&gt;
-    
-    </summary>
-    
-    
-      <category term="Deep Learning" scheme="http://tramac.github.io/categories/Deep-Learning/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>talk-learning</title>
-    <link href="http://tramac.github.io/2020/07/20/talk-learning/"/>
-    <id>http://tramac.github.io/2020/07/20/talk-learning/</id>
-    <published>2020-07-20T14:31:58.000Z</published>
-    <updated>2020-09-23T12:08:47.959Z</updated>
-    
-    <content type="html"><![CDATA[<h3 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h3><p>[x] From Faster R-CNN to Mask R-CNN&lt;<a href="https://www.techbeat.net/talks/MTU5NjMzNjcxMDg4MS0xOTQtNzYwNzM=" target="_blank" rel="noopener">Talk</a>&gt;<br>  <strong>Key function:</strong> Classification, Location, Mask(per pixel) classification, Lanmarks location</p><p>[x] 理解和利用CNN的内部表征&lt;<a href="https://www.techbeat.net/talks/MTU5NTY4OTI2NTk3NS0xODAtMjgxMDk=" target="_blank" rel="noopener">Talk</a>&gt;<br>  <strong>Outlines:</strong> Visualizing the internal units &amp; Weakly supervised localization and class-specific saliency<br>  <strong>Keywords:</strong>: 神经元响应，内部表征，物体表征，可视化，可解释性</p><a id="more"></a><p>[x] 深度图像检索前沿技术与实际应用&lt;<a href="https://www.techbeat.net/talks/MTU5NTU5MDI2ODUxOC0xNzEtNTY0Mg==" target="_blank" rel="noopener">Talk</a>&gt;<br>  <strong>Defining Image Retrieval:</strong> Given an image query, generate a rank of all similar images.<br>  <strong>Defining instance retrieval:</strong> Given a target object of image query, generate a rank of all images containing the target object.<br>  <strong>Retrieval pipeline:</strong> Query image—Image Representations—Image Matching—Ranking List—Spatial Re-ranking/Query Expansion </p><p>[x] 自动驾驶中的视觉技术&lt;<a href="https://www.techbeat.net/talks/MTU5NTI1NTY5NjMzMC0xNjMtNjY2OA==" target="_blank" rel="noopener">Talk</a>&gt;<br>  <strong>Levels of Driving:</strong> L1-L5<br>  <strong>Techniques(L3):</strong> High precision map/LiDAR<br>  <strong>Outlines:</strong> Stereo/Motion/Detection&amp;Tracking/Scene Understanding/Localization and Mapping(SLAM)</p>]]></content>
-    
-    <summary type="html">
-    
-      &lt;h3 id=&quot;TODO&quot;&gt;&lt;a href=&quot;#TODO&quot; class=&quot;headerlink&quot; title=&quot;TODO&quot;&gt;&lt;/a&gt;TODO&lt;/h3&gt;&lt;p&gt;[x] From Faster R-CNN to Mask R-CNN&amp;lt;&lt;a href=&quot;https://www.techbeat.net/talks/MTU5NjMzNjcxMDg4MS0xOTQtNzYwNzM=&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Talk&lt;/a&gt;&amp;gt;&lt;br&gt;  &lt;strong&gt;Key function:&lt;/strong&gt; Classification, Location, Mask(per pixel) classification, Lanmarks location&lt;/p&gt;
-&lt;p&gt;[x] 理解和利用CNN的内部表征&amp;lt;&lt;a href=&quot;https://www.techbeat.net/talks/MTU5NTY4OTI2NTk3NS0xODAtMjgxMDk=&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Talk&lt;/a&gt;&amp;gt;&lt;br&gt;  &lt;strong&gt;Outlines:&lt;/strong&gt; Visualizing the internal units &amp;amp; Weakly supervised localization and class-specific saliency&lt;br&gt;  &lt;strong&gt;Keywords:&lt;/strong&gt;: 神经元响应，内部表征，物体表征，可视化，可解释性&lt;/p&gt;
     
     </summary>
     
