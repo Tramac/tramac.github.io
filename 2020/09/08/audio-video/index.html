@@ -22,17 +22,21 @@
     var CONFIG = {"hostname":"tramac.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Tramac写字的地方">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Tramac&#39;s Space">
-<meta property="og:url" content="http://tramac.github.io/archives/2018/12/index.html">
+  <meta name="description" content="视频理解中audio信息的使用读取音频&amp;可视化波形图12345678910111213import matplotlibmatplotlib.use(&#39;agg&#39;) # 服务器无GUI使用matplotlib绘图import matplotlib.pyplot as pltimport soundfile as sfimport librosa.displaywav_data, sr &#x3D; s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="audio-video">
+<meta property="og:url" content="http://tramac.github.io/2020/09/08/audio-video/index.html">
 <meta property="og:site_name" content="Tramac&#39;s Space">
-<meta property="og:description" content="Tramac写字的地方">
+<meta property="og:description" content="视频理解中audio信息的使用读取音频&amp;可视化波形图12345678910111213import matplotlibmatplotlib.use(&#39;agg&#39;) # 服务器无GUI使用matplotlib绘图import matplotlib.pyplot as pltimport soundfile as sfimport librosa.displaywav_data, sr &#x3D; s">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://tramac.github.io/Users/zhaoxiangming/Desktop/wav.png">
+<meta property="article:published_time" content="2020-09-08T12:00:17.000Z">
+<meta property="article:modified_time" content="2020-09-11T07:12:06.416Z">
 <meta property="article:author" content="Tramac">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://tramac.github.io/Users/zhaoxiangming/Desktop/wav.png">
 
-<link rel="canonical" href="http://tramac.github.io/archives/2018/12/">
+<link rel="canonical" href="http://tramac.github.io/2020/09/08/audio-video/">
 
 
 <script id="page-configurations">
@@ -40,12 +44,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>归档 | Tramac's Space</title>
+  <title>audio-video | Tramac's Space</title>
   
 
 
@@ -190,56 +194,126 @@
         <div class="content-wrap">
           
 
-          <div class="content archive">
+          <div class="content post posts-expand">
             
 
+    
   
   
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tramac.github.io/2020/09/08/audio-video/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Tramac">
+      <meta itemprop="description" content="Tramac写字的地方">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tramac's Space">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          audio-video
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-08 20:00:17" itemprop="dateCreated datePublished" datetime="2020-09-08T20:00:17+08:00">2020-09-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-11 15:12:06" itemprop="dateModified" datetime="2020-09-11T15:12:06+08:00">2020-09-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Deep-Learning/" itemprop="url" rel="index"><span itemprop="name">Deep Learning</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/09/08/audio-video/" class="post-meta-item leancloud_visitors" data-flag-title="audio-video" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
   
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        <span class="collection-header">嗯..! 目前共计 19 篇日志。 继续努力。</span>
-      </div>
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/08/audio-video/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/08/audio-video/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <span class="collection-header">2018</span>
+        <h2 id="视频理解中audio信息的使用"><a href="#视频理解中audio信息的使用" class="headerlink" title="视频理解中audio信息的使用"></a>视频理解中audio信息的使用</h2><h4 id="读取音频-amp-可视化波形图"><a href="#读取音频-amp-可视化波形图" class="headerlink" title="读取音频&amp;可视化波形图"></a>读取音频&amp;可视化波形图</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> matplotlib</span><br><span class="line">matplotlib.use(<span class="string">'agg'</span>) <span class="comment"># 服务器无GUI使用matplotlib绘图</span></span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> soundfile <span class="keyword">as</span> sf</span><br><span class="line"><span class="keyword">import</span> librosa.display</span><br><span class="line"></span><br><span class="line">wav_data, sr = sf.read(wav_file, dtype=<span class="string">'int16'</span>)</span><br><span class="line">samples = wav_data / <span class="number">32768.0</span>  <span class="comment"># Convert to [-1.0, +1.0]</span></span><br><span class="line"></span><br><span class="line">plt.figure()</span><br><span class="line">plt.title(<span class="string">'Waveform'</span>)</span><br><span class="line">librosa.display.waveplot(samples, sr=sr)</span><br><span class="line">plt.savefig(<span class="string">"wav.png"</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/Users/zhaoxiangming/Desktop/wav.png" alt="wav"></p>
+<p>声音波形图只是把一维的时域信号直观的显示出来，并没有什么有用的信息。</p>
+<h4 id="声谱图-spectrogram"><a href="#声谱图-spectrogram" class="headerlink" title="声谱图(spectrogram)"></a>声谱图(spectrogram)</h4><p>声谱图，简单来说就是将声音信号通过短时傅里叶变换，获得一张包含3个维度数据的热力图。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> librosa.display</span><br><span class="line"><span class="keyword">import</span> matplotlib</span><br><span class="line">matplotlib.use(<span class="string">'agg'</span>)</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment">#librosa.display.specshow(librosa.power_to_db(spectrogram.T, ref=np.max), sr=audio_sample_rate, x_axis='time', y_axis='linear')</span></span><br><span class="line">librosa.display.specshow(spectrogram.T, sr=audio_sample_rate, x_axis=<span class="string">'time'</span>, y_axis=<span class="string">'linear'</span>)</span><br><span class="line">plt.colorbar(format=<span class="string">'%+2.0f dB'</span>)</span><br><span class="line">plt.title(<span class="string">'spectrogram'</span>)</span><br><span class="line">plt.savefig(<span class="string">'spec.png'</span>)</span><br></pre></td></tr></table></figure>
+
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+    
+    
+    
 
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2018-12-16T09:26:33+08:00"
-              content="2018-12-16">
-          12-16
-        </time>
-      </div>
+      <footer class="post-footer">
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2018/12/16/Finetuning%20with%20Tensorflow/" itemprop="url">
-            <span itemprop="name">Finetuning with Tensorflow</span>
-          </a>
-      </div>
+        
 
-    </header>
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/07/23/Pytorch%E6%9C%89%E5%93%AA%E4%BA%9B%E5%9D%91%EF%BC%9F/" rel="prev" title="Pytorch有哪些坑？">
+      <i class="fa fa-chevron-left"></i> Pytorch有哪些坑？
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
   </article>
-
-
-    </div>
-  </div>
   
   
-  
-
   
 
 
 
           </div>
           
+    <div class="comments" id="valine-comments"></div>
 
 <script>
   window.addEventListener('tabs:register', () => {
@@ -286,6 +360,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#视频理解中audio信息的使用"><span class="nav-number">1.</span> <span class="nav-text">视频理解中audio信息的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#读取音频-amp-可视化波形图"><span class="nav-number">1.0.1.</span> <span class="nav-text">读取音频&amp;可视化波形图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#声谱图-spectrogram"><span class="nav-number">1.0.2.</span> <span class="nav-text">声谱图(spectrogram)</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

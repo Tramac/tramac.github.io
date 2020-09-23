@@ -46,7 +46,7 @@
     <title>Talk-Learning</title>
     <url>/2020/07/20/talk-learning/</url>
     <content><![CDATA[<h3 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h3><ul>
-<li><input disabled="" type="checkbox"> <p>From Faster R-CNN to Mask R-CNN&lt;<a href="https://www.techbeat.net/talks/MTU5NjMzNjcxMDg4MS0xOTQtNzYwNzM=" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Key function:</strong> Classification, Location, Mask(per pixel) classification, Lanmarks location</p>
+<li><input checked="" disabled="" type="checkbox"> <p>From Faster R-CNN to Mask R-CNN&lt;<a href="https://www.techbeat.net/talks/MTU5NjMzNjcxMDg4MS0xOTQtNzYwNzM=" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Key function:</strong> Classification, Location, Mask(per pixel) classification, Lanmarks location</p>
 </li>
 <li><input checked="" disabled="" type="checkbox"> <p>理解和利用CNN的内部表征&lt;<a href="https://www.techbeat.net/talks/MTU5NTY4OTI2NTk3NS0xODAtMjgxMDk=" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Outlines:</strong> Visualizing the internal units &amp; Weakly supervised localization and class-specific saliency<br><strong>Keywords:</strong>: 神经元响应，内部表征，物体表征，可视化，可解释性</p>
 </li>
@@ -60,6 +60,21 @@
 <ul>
 <li><input checked="" disabled="" type="checkbox"> 自动驾驶中的视觉技术&lt;<a href="https://www.techbeat.net/talks/MTU5NTI1NTY5NjMzMC0xNjMtNjY2OA==" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Levels of Driving:</strong> L1-L5<br><strong>Techniques(L3):</strong> High precision map/LiDAR<br><strong>Outlines:</strong> Stereo/Motion/Detection&amp;Tracking/Scene Understanding/Localization and Mapping(SLAM)</li>
 </ul>
+]]></content>
+      <categories>
+        <category>Deep Learning</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>audio-video</title>
+    <url>/2020/09/08/audio-video/</url>
+    <content><![CDATA[<h2 id="视频理解中audio信息的使用"><a href="#视频理解中audio信息的使用" class="headerlink" title="视频理解中audio信息的使用"></a>视频理解中audio信息的使用</h2><h4 id="读取音频-amp-可视化波形图"><a href="#读取音频-amp-可视化波形图" class="headerlink" title="读取音频&amp;可视化波形图"></a>读取音频&amp;可视化波形图</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> matplotlib</span><br><span class="line">matplotlib.use(<span class="string">'agg'</span>) <span class="comment"># 服务器无GUI使用matplotlib绘图</span></span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> soundfile <span class="keyword">as</span> sf</span><br><span class="line"><span class="keyword">import</span> librosa.display</span><br><span class="line"></span><br><span class="line">wav_data, sr = sf.read(wav_file, dtype=<span class="string">'int16'</span>)</span><br><span class="line">samples = wav_data / <span class="number">32768.0</span>  <span class="comment"># Convert to [-1.0, +1.0]</span></span><br><span class="line"></span><br><span class="line">plt.figure()</span><br><span class="line">plt.title(<span class="string">'Waveform'</span>)</span><br><span class="line">librosa.display.waveplot(samples, sr=sr)</span><br><span class="line">plt.savefig(<span class="string">"wav.png"</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/Users/zhaoxiangming/Desktop/wav.png" alt="wav"></p>
+<p>声音波形图只是把一维的时域信号直观的显示出来，并没有什么有用的信息。</p>
+<h4 id="声谱图-spectrogram"><a href="#声谱图-spectrogram" class="headerlink" title="声谱图(spectrogram)"></a>声谱图(spectrogram)</h4><p>声谱图，简单来说就是将声音信号通过短时傅里叶变换，获得一张包含3个维度数据的热力图。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> librosa.display</span><br><span class="line"><span class="keyword">import</span> matplotlib</span><br><span class="line">matplotlib.use(<span class="string">'agg'</span>)</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment">#librosa.display.specshow(librosa.power_to_db(spectrogram.T, ref=np.max), sr=audio_sample_rate, x_axis='time', y_axis='linear')</span></span><br><span class="line">librosa.display.specshow(spectrogram.T, sr=audio_sample_rate, x_axis=<span class="string">'time'</span>, y_axis=<span class="string">'linear'</span>)</span><br><span class="line">plt.colorbar(format=<span class="string">'%+2.0f dB'</span>)</span><br><span class="line">plt.title(<span class="string">'spectrogram'</span>)</span><br><span class="line">plt.savefig(<span class="string">'spec.png'</span>)</span><br></pre></td></tr></table></figure>
+
 ]]></content>
       <categories>
         <category>Deep Learning</category>
