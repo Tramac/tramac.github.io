@@ -995,20 +995,12 @@
   <entry>
     <title>talk-learning</title>
     <url>/2020/07/20/talk-learning/</url>
-    <content><![CDATA[<h3 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h3><ul>
-<li><input checked="" disabled="" type="checkbox"> <p>From Faster R-CNN to Mask R-CNN&lt;<a href="https://www.techbeat.net/talks/MTU5NjMzNjcxMDg4MS0xOTQtNzYwNzM=" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Key function:</strong> Classification, Location, Mask(per pixel) classification, Lanmarks location</p>
-</li>
-<li><input checked="" disabled="" type="checkbox"> <p>理解和利用CNN的内部表征&lt;<a href="https://www.techbeat.net/talks/MTU5NTY4OTI2NTk3NS0xODAtMjgxMDk=" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Outlines:</strong> Visualizing the internal units &amp; Weakly supervised localization and class-specific saliency<br><strong>Keywords:</strong>: 神经元响应，内部表征，物体表征，可视化，可解释性</p>
-</li>
-</ul>
+    <content><![CDATA[<h3 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h3><p>[x] From Faster R-CNN to Mask R-CNN&lt;<a href="https://www.techbeat.net/talks/MTU5NjMzNjcxMDg4MS0xOTQtNzYwNzM=" target="_blank" rel="noopener">Talk</a>&gt;<br>  <strong>Key function:</strong> Classification, Location, Mask(per pixel) classification, Lanmarks location</p>
+<p>[x] 理解和利用CNN的内部表征&lt;<a href="https://www.techbeat.net/talks/MTU5NTY4OTI2NTk3NS0xODAtMjgxMDk=" target="_blank" rel="noopener">Talk</a>&gt;<br>  <strong>Outlines:</strong> Visualizing the internal units &amp; Weakly supervised localization and class-specific saliency<br>  <strong>Keywords:</strong>: 神经元响应，内部表征，物体表征，可视化，可解释性</p>
 <a id="more"></a>
 
-<ul>
-<li><input checked="" disabled="" type="checkbox"> 深度图像检索前沿技术与实际应用&lt;<a href="https://www.techbeat.net/talks/MTU5NTU5MDI2ODUxOC0xNzEtNTY0Mg==" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Defining Image Retrieval:</strong> Given an image query, generate a rank of all similar images.<br><strong>Defining instance retrieval:</strong> Given a target object of image query, generate a rank of all images containing the target object.<br><strong>Retrieval pipeline:</strong> Query image—Image Representations—Image Matching—Ranking List—Spatial Re-ranking/Query Expansion </li>
-</ul>
-<ul>
-<li><input checked="" disabled="" type="checkbox"> 自动驾驶中的视觉技术&lt;<a href="https://www.techbeat.net/talks/MTU5NTI1NTY5NjMzMC0xNjMtNjY2OA==" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Levels of Driving:</strong> L1-L5<br><strong>Techniques(L3):</strong> High precision map/LiDAR<br><strong>Outlines:</strong> Stereo/Motion/Detection&amp;Tracking/Scene Understanding/Localization and Mapping(SLAM)</li>
-</ul>
+<p>[x] 深度图像检索前沿技术与实际应用&lt;<a href="https://www.techbeat.net/talks/MTU5NTU5MDI2ODUxOC0xNzEtNTY0Mg==" target="_blank" rel="noopener">Talk</a>&gt;<br>  <strong>Defining Image Retrieval:</strong> Given an image query, generate a rank of all similar images.<br>  <strong>Defining instance retrieval:</strong> Given a target object of image query, generate a rank of all images containing the target object.<br>  <strong>Retrieval pipeline:</strong> Query image—Image Representations—Image Matching—Ranking List—Spatial Re-ranking/Query Expansion </p>
+<p>[x] 自动驾驶中的视觉技术&lt;<a href="https://www.techbeat.net/talks/MTU5NTI1NTY5NjMzMC0xNjMtNjY2OA==" target="_blank" rel="noopener">Talk</a>&gt;<br>  <strong>Levels of Driving:</strong> L1-L5<br>  <strong>Techniques(L3):</strong> High precision map/LiDAR<br>  <strong>Outlines:</strong> Stereo/Motion/Detection&amp;Tracking/Scene Understanding/Localization and Mapping(SLAM)</p>
 ]]></content>
       <categories>
         <category>Deep Learning</category>
