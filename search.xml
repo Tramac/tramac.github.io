@@ -47,6 +47,8 @@
     <title>talk-learning</title>
     <url>/2020/09/23/talk-learning/</url>
     <content><![CDATA[<h3 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h3><ul>
+<li><input checked="" disabled="" type="checkbox"> <p>Squeeze-and-Excitation Networks&lt;<a href="https://www.techbeat.net/talk-info?id=218" target="_blank" rel="noopener">Talk</a>&gt;</p>
+</li>
 <li><input checked="" disabled="" type="checkbox"> <p>基于光流的视频语义分割和物体检测&lt;<a href="https://www.techbeat.net/talk-info?id=212" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Keywords:</strong>Opital flow, Feature propagation(特征传播), Feature aggregation</p>
 </li>
 <li><input checked="" disabled="" type="checkbox"> <p>From Faster R-CNN to Mask R-CNN&lt;<a href="https://www.techbeat.net/talks/MTU5NjMzNjcxMDg4MS0xOTQtNzYwNzM=" target="_blank" rel="noopener">Talk</a>&gt;<br><strong>Key function:</strong> Classification, Location, Mask(per pixel) classification, Lanmarks location</p>
