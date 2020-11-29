@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://tramac.github.io/"/>
-  <updated>2020-10-22T03:23:12.563Z</updated>
+  <updated>2020-11-29T08:06:12.116Z</updated>
   <id>http://tramac.github.io/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>learning-to-reinforcement-learning</title>
+    <link href="http://tramac.github.io/2020/11/29/learning-to-reinforcement-learning/"/>
+    <id>http://tramac.github.io/2020/11/29/learning-to-reinforcement-learning/</id>
+    <published>2020-11-29T08:02:16.000Z</published>
+    <updated>2020-11-29T08:06:12.116Z</updated>
+    
+    <content type="html"><![CDATA[<p>强化学习记录。学习资料为ZhouBolei大神的<a href="https://github.com/zhoubolei/introRL" target="_blank" rel="noopener">introRL</a>。</p><p>[x] - Lecture1: Overview (课程概括与RL基础)</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;强化学习记录。学习资料为ZhouBolei大神的&lt;a href=&quot;https://github.com/zhoubolei/introRL&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;introRL&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;[x] - Lecture1:
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
   
   <entry>
     <title>talk-learning</title>
