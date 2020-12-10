@@ -113,9 +113,22 @@
   <entry>
     <title>learning-to-reinforcement-learning</title>
     <url>/2020/11/29/learning-to-reinforcement-learning/</url>
-    <content><![CDATA[<p>强化学习记录。学习资料为ZhouBolei大神的<a href="https://github.com/zhoubolei/introRL" target="_blank" rel="noopener">introRL</a>。</p>
-<p>[x] - Lecture1: Overview (课程概括与RL基础)</p>
-]]></content>
+    <content><![CDATA[<p>强化学习记录，学习资料为ZhouBolei大神的<a href="https://github.com/zhoubolei/introRL" target="_blank" rel="noopener">introRL</a>。</p>
+<h2 id="Foundation"><a href="#Foundation" class="headerlink" title="Foundation"></a>Foundation</h2><ul>
+<li><input checked="" disabled="" type="checkbox"> Lecture1: Overview (课程概括与RL基础)<ul>
+<li><strong>Keywords</strong>: Agent, Environment, action, reward</li>
+<li>Supervised learning: Annotated images, data follows i.i.d distribution（条件独立同分布）</li>
+<li>Reinforcement learning: Data are not i.i.d, a correlated time series data(数据不符合i.i.d条件，前后有时序关系); No instant feedback or label for correct action(不能马上得到反馈)</li>
+<li>Features of RL: Trial-and-error exploration; Delayed reward; Time matters(sequential data, non i.i.d data); Agent’s actions changes the environment.</li>
+<li><strong>Rewards</strong>: A scalar feedback signal; Indicate how well agent is doing at step t; RL is based on the maximization of rewards.</li>
+<li>Sequential Decision Making: Trade-off between immediate reward and long-term reward.</li>
+<li>An RL agent components: Policy, Value function, Model.</li>
+<li>Agents type: Value-based agent, Policy-based agent, Actor-Critic agent.</li>
+<li>Exploration and Exploitation.</li>
+</ul>
+</li>
+</ul>
+<h2 id="Advanced-Topics"><a href="#Advanced-Topics" class="headerlink" title="Advanced Topics"></a>Advanced Topics</h2>]]></content>
   </entry>
   <entry>
     <title>工作一年后想说的话</title>
