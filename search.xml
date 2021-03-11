@@ -4,6 +4,7 @@
     <title>Paper-reading List</title>
     <url>/2018/11/18/paper-reading-list/</url>
     <content><![CDATA[<h2 id="Video-Understanding"><a href="#Video-Understanding" class="headerlink" title="Video Understanding"></a>Video Understanding</h2><ul>
+<li><input disabled="" type="checkbox"> Multi-modal Transformer for Video Retrieval-ECCV2020&lt;<a href="https://arxiv.org/pdf/2007.10639.pdf" target="_blank" rel="noopener">Paper</a>&gt;&lt;<a href="https://github.com/gabeur/mmt" target="_blank" rel="noopener">Code-Pytorch</a>&gt;</li>
 <li><input disabled="" type="checkbox"> Support-set Bottlenecks for Video-text Representation Learning-ICLR2021&lt;<a href="https://arxiv.org/pdf/2010.02824.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
 <li><input checked="" disabled="" type="checkbox"> Dual Encoding for Video Retrieval by Text-TPAMI2021&lt;<a href="https://arxiv.org/pdf/2009.05381.pdf" target="_blank" rel="noopener">Paper</a>&gt;&lt;<a href="https://github.com/danieljf24/hybrid_space" target="_blank" rel="noopener">Code-Pytorch</a>&gt;</li>
 <li><input checked="" disabled="" type="checkbox"> Less is More: ClipBERT for Video-and-Language Learning via Sparse Sampling-CVPR2021&lt;<a href="https://arxiv.org/pdf/2102.06183.pdf" target="_blank" rel="noopener">Paper</a>&gt;&lt;<a href="https://github.com/jayleicn/ClipBERT" target="_blank" rel="noopener">Code</a>&gt;</li>
