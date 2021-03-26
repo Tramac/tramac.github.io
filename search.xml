@@ -1,90 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Finetuning with Tensorflow</title>
-    <url>/2018/12/16/Finetuning%20with%20Tensorflow/</url>
-    <content><![CDATA[<p>很多网络的特征提取部分都会用到fine-tunning,比如resnet-50,inception等,该文章以AlexNet为例,分析tensorflow如何进行微调</p>
-<p><strong>finetuning的三要素:</strong></p>
-<ul>
-<li>预训练模型,如resnet_v2_50.npy、resnet_v2_50.ckpt等。</li>
-<li>模型的网络结构定义。</li>
-<li>所需从预训练模型中恢复的变量，通常以排除的方式给出。</li>
-</ul>
-<a id="more"></a>
-
-<p><strong>Tips:</strong></p>
-<ul>
-<li><p>所定义网络结构中的变量名需要和预训练模型中的变量名保持相同。预训练模型中的变量名可有以下方式查看:</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 使用tf.train.NewCheckpointReader直接读取ckpt文件里的变量</span></span><br><span class="line"><span class="keyword">from</span> tensorflow.python <span class="keyword">import</span> pywrap_tensorflow</span><br><span class="line"></span><br><span class="line">reader = pywarp_tensorflow.NewCheckpointReader(checkpoint_path)</span><br><span class="line">var_to_shape_map = reader.get_variable_to_shape_map()</span><br><span class="line"><span class="keyword">for</span> key <span class="keyword">in</span> var_to_shape_map:</span><br><span class="line">    print(<span class="string">"tensor_name: "</span>, key)</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>恢复部分变量时可借助slim。如:</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">variables_to_restore = slim.get_varibales_to_restore(exclude=[args.resnet_model] + <span class="string">"logits"</span>, <span class="string">"optimizer_vars"</span>,  <span class="string">"DeepLab_v3/ASPP_layer"</span>, <span class="string">"DeepLab_v3/logits"</span>])</span><br><span class="line">restorer = tf.train.Saver(variables_to_restore)</span><br><span class="line">restorer.restore(sess, <span class="string">"./resnet/checkpoints/"</span> + args.resnet_model + <span class="string">"./ckpt"</span>)</span><br></pre></td></tr></table></figure>
-
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Deep Learning</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>PyTorch参数初始化及Finetunning</title>
-    <url>/2018/11/06/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>PyTorch的代码中很多都有显式的参数初始化过程（默认的初始化形式是什么？），本文将对其做一个总结。</p>
-<a id="more"></a>
-
-<h2 id="参数初始化"><a href="#参数初始化" class="headerlink" title="参数初始化"></a>参数初始化</h2><p>参数的初始化其实就是对参数进行赋值。网络中所需要学习的参数其实都是<code>Variable</code>，它其实是对<code>Tensor</code>的封装，同时提供了<code>data</code>，<code>grad</code>等接口，这就意味着我们可以直接对这些参数进行赋值操作。这就是PyTorch简洁高效所在。</p>
-<p><a href="https://tramac.github.io/2019/04/08/PyTorch参数初始化及Finetunning/variable.png"><img src="https://tramac.github.io/2019/04/08/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/variable.png" alt="img"></a></p>
-<p>PyTorch中有多种初始化方式，但是其作者所推崇的方式如下：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">weight_init</span><span class="params">(m)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> isinstance(m, nn.Conv2d):</span><br><span class="line">        n = m.kernel_size[<span class="number">0</span>] * m.kernel_size[<span class="number">1</span>] * m.out_channels</span><br><span class="line">        m.weight.data.normal_(<span class="number">0</span>, math.sqrt(<span class="number">2.</span> / n))</span><br><span class="line">    <span class="keyword">elif</span> isinstance(m, nn.BatchNorm2d):</span><br><span class="line">        m.weight.data.fill_(<span class="number">1</span>)</span><br><span class="line">        m.bias.data.zero_()</span><br></pre></td></tr></table></figure>
-
-<h2 id="Finetunning"><a href="#Finetunning" class="headerlink" title="Finetunning"></a>Finetunning</h2><p>通常在加载了预训练模型的参数之后，我们需要finetune模型，一般有以下两种方式：</p>
-<h4 id="局部微调"><a href="#局部微调" class="headerlink" title="局部微调"></a>局部微调</h4><p>冻结其它层，只调节最后的几层。其实不训练也就意味着不进行梯度计算，PyTorch中提供的<code>requires_grad</code>使得对训练的控制变得非常简单。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">model = torchvision.models.resnet18(pretrained=<span class="literal">True</span>)</span><br><span class="line"><span class="keyword">for</span> param <span class="keyword">in</span> model.parameters():</span><br><span class="line">    param.requires_grad = <span class="literal">False</span></span><br><span class="line"><span class="comment"># 替换最后的全连接层，新构造的模块的参数默认requires_grad=True</span></span><br><span class="line">model.fc = nn.Linear(<span class="number">512</span>, <span class="number">100</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 只优化最后的分类层</span></span><br><span class="line">optimizer = optim.SGD(model.fc.parameters(), lr=<span class="number">1e-2</span>, momentum=<span class="number">0.9</span>)</span><br></pre></td></tr></table></figure>
-
-<h4 id="全局微调"><a href="#全局微调" class="headerlink" title="全局微调"></a>全局微调</h4><p>对全局都进行finetune，但是希望该换过的层和其它层的学习率不同，这是可以把其它层和新层在<code>optimizer</code>中单独赋予不同的学习率。如下：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ignored_params = list(map(id, model.fc.parameters()))</span><br><span class="line">base_params = filter(<span class="keyword">lambda</span> p: id(p) <span class="keyword">not</span> <span class="keyword">in</span> ignored_params,</span><br><span class="line">                     model.parameters())</span><br><span class="line"></span><br><span class="line">optimizer = torch.optim.SGD([</span><br><span class="line">            &#123;<span class="string">'params'</span>: base_params&#125;,</span><br><span class="line">            &#123;<span class="string">'params'</span>: model.fc.parameters(), <span class="string">'lr'</span>: <span class="number">1e-3</span>&#125;</span><br><span class="line">            ], lr=<span class="number">1e-2</span>, momentum=<span class="number">0.9</span>)</span><br></pre></td></tr></table></figure>
-
-<p>其中<code>base_params</code>使用<code>1e-3</code>来训练，<code>model.fc.parameters</code>使用<code>1e-2</code>来训练，<code>momentum</code>是二者共有的。</p>
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><a href="https://blog.csdn.net/u012759136/article/details/65634477" target="_blank" rel="noopener">PyTorch参数初始化和Finetune</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>Deep Learning</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Pytorch有哪些坑？</title>
-    <url>/2020/07/23/Pytorch%E6%9C%89%E5%93%AA%E4%BA%9B%E5%9D%91%EF%BC%9F/</url>
-    <content><![CDATA[<h3 id="1-torchvision-transform-ToTensor-中的细节"><a href="#1-torchvision-transform-ToTensor-中的细节" class="headerlink" title="1 torchvision.transform.ToTensor()中的细节"></a>1 torchvision.transform.ToTensor()中的细节</h3><p>功能：把一个取值范围是<code>[0,255]</code>的<code>PIL.Image</code>或者<code>shape</code>为<code>(H,W,C)</code>的<code>numpy.ndarray</code>,转换成形状为<code>(C,H,W)</code>，取值范围是<code>[0,1.0]</code>的<code>torch.FloatTensor</code>。</p>
-<p>注意：只有当<code>numpy.ndarray</code>的<code>dtype=unit8</code>时才会将像素值scale到<code>[0,1.0]</code>。</p>
-<a id="more"></a>
-
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> PIL <span class="keyword">import</span> Image</span><br><span class="line"><span class="keyword">from</span> torchvision <span class="keyword">import</span> transforms</span><br><span class="line"></span><br><span class="line">transform = transforms.Compose([</span><br><span class="line">  transforms.ToTensor(),</span><br><span class="line">])</span><br><span class="line">img = Image.open(<span class="string">'cat.png'</span>) <span class="comment"># dtype=uint8</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># case1: 正常情况</span></span><br><span class="line">img1 = np.asarray(img)</span><br><span class="line">img1 = transform(img1)</span><br><span class="line">img1 = img3.permute([<span class="number">1</span>, <span class="number">2</span>, <span class="number">0</span>]) <span class="comment"># CxHxW -&gt; HxWxC，方便后续对比</span></span><br><span class="line">img1 = img1.cpu().data.numpy()</span><br><span class="line">print(img1[<span class="number">300</span>: <span class="number">305</span>, <span class="number">695</span>: <span class="number">700</span>, <span class="number">0</span>]) <span class="comment"># 打印部分像素值</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">[[0.43529412 0.44705883 0.45490196 0.45882353 0.45490196]</span></span><br><span class="line"><span class="string"> [0.41960785 0.43137255 0.4392157  0.44313726 0.4392157 ]</span></span><br><span class="line"><span class="string"> [0.40392157 0.41568628 0.42745098 0.43137255 0.43529412]</span></span><br><span class="line"><span class="string"> [0.3882353  0.40784314 0.41568628 0.41960785 0.42745098]</span></span><br><span class="line"><span class="string"> [0.38431373 0.4        0.4117647  0.41568628 0.42352942]]</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># case2: 错误操作，将unit8数据类型转换为float32，导致没有scale操作</span></span><br><span class="line">img2 = np.asarray(img, dtype=np.float32) <span class="comment"># 由于这里使得torch.ByteTensor=False，导致ToTensor()没有执行div(255)操作</span></span><br><span class="line">img2 = transform(img2)</span><br><span class="line">img2 = img2.permute([<span class="number">1</span>, <span class="number">2</span>, <span class="number">0</span>])</span><br><span class="line">img2 = img2.cpu().data.numpy()</span><br><span class="line">print(img2[<span class="number">300</span>: <span class="number">305</span>, <span class="number">695</span>: <span class="number">700</span>, <span class="number">0</span>])</span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">[[111. 114. 116. 117. 116.]</span></span><br><span class="line"><span class="string"> [107. 110. 112. 113. 112.]</span></span><br><span class="line"><span class="string"> [103. 106. 109. 110. 111.]</span></span><br><span class="line"><span class="string"> [ 99. 104. 106. 107. 109.]</span></span><br><span class="line"><span class="string"> [ 98. 102. 105. 106. 108.]]</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># case3: 正常情况，不使用ToTensor()执行scale操作</span></span><br><span class="line">img3 = np.asarray(img, dtype=np.float32)</span><br><span class="line">img3 = img3 / <span class="number">255.</span></span><br><span class="line">print(img3[<span class="number">300</span>: <span class="number">305</span>, <span class="number">695</span>: <span class="number">700</span>, <span class="number">0</span>])</span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">[[0.43529412 0.44705883 0.45490196 0.45882353 0.45490196]</span></span><br><span class="line"><span class="string"> [0.41960785 0.43137255 0.4392157  0.44313726 0.4392157 ]</span></span><br><span class="line"><span class="string"> [0.40392157 0.41568628 0.42745098 0.43137255 0.43529412]</span></span><br><span class="line"><span class="string"> [0.3882353  0.40784314 0.41568628 0.41960785 0.42745098]</span></span><br><span class="line"><span class="string"> [0.38431373 0.4        0.4117647  0.41568628 0.42352942]]</span></span><br><span class="line"><span class="string">"""</span></span><br></pre></td></tr></table></figure>
-
-<p>结论：使用<code>torchvision.transform.ToTensor()</code>时避免将图像的数据类型转为<code>float32</code>。</p>
-]]></content>
-      <categories>
-        <category>Deep Learning</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>audio-video</title>
-    <url>/2020/09/08/audio-video/</url>
-    <content><![CDATA[<h2 id="视频理解中audio信息的使用"><a href="#视频理解中audio信息的使用" class="headerlink" title="视频理解中audio信息的使用"></a>视频理解中audio信息的使用</h2><h4 id="读取音频-amp-可视化波形图"><a href="#读取音频-amp-可视化波形图" class="headerlink" title="读取音频&amp;可视化波形图"></a>读取音频&amp;可视化波形图</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> matplotlib</span><br><span class="line">matplotlib.use(<span class="string">'agg'</span>) <span class="comment"># 服务器无GUI使用matplotlib绘图</span></span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> soundfile <span class="keyword">as</span> sf</span><br><span class="line"><span class="keyword">import</span> librosa.display</span><br><span class="line"></span><br><span class="line">wav_data, sr = sf.read(wav_file, dtype=<span class="string">'int16'</span>)</span><br><span class="line">samples = wav_data / <span class="number">32768.0</span>  <span class="comment"># Convert to [-1.0, +1.0]</span></span><br><span class="line"></span><br><span class="line">plt.figure()</span><br><span class="line">plt.title(<span class="string">'Waveform'</span>)</span><br><span class="line">librosa.display.waveplot(samples, sr=sr)</span><br><span class="line">plt.savefig(<span class="string">"wav.png"</span>)</span><br></pre></td></tr></table></figure>
-
-<p><img src="/Users/zhaoxiangming/Desktop/wav.png" alt="wav"></p>
-<p>声音波形图只是把一维的时域信号直观的显示出来，并没有什么有用的信息。</p>
-<h4 id="声谱图-spectrogram"><a href="#声谱图-spectrogram" class="headerlink" title="声谱图(spectrogram)"></a>声谱图(spectrogram)</h4><p>声谱图，简单来说就是将声音信号通过短时傅里叶变换，获得一张包含3个维度数据的热力图。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> librosa.display</span><br><span class="line"><span class="keyword">import</span> matplotlib</span><br><span class="line">matplotlib.use(<span class="string">'agg'</span>)</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment">#librosa.display.specshow(librosa.power_to_db(spectrogram.T, ref=np.max), sr=audio_sample_rate, x_axis='time', y_axis='linear')</span></span><br><span class="line">librosa.display.specshow(spectrogram.T, sr=audio_sample_rate, x_axis=<span class="string">'time'</span>, y_axis=<span class="string">'linear'</span>)</span><br><span class="line">plt.colorbar(format=<span class="string">'%+2.0f dB'</span>)</span><br><span class="line">plt.title(<span class="string">'spectrogram'</span>)</span><br><span class="line">plt.savefig(<span class="string">'spec.png'</span>)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Deep Learning</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Paper-reading List</title>
     <url>/2018/11/18/paper-reading-list/</url>
     <content><![CDATA[<h2 id="Video-Understanding"><a href="#Video-Understanding" class="headerlink" title="Video Understanding"></a>Video Understanding</h2><ul>
@@ -178,6 +94,101 @@
       </categories>
   </entry>
   <entry>
+    <title>audio-video</title>
+    <url>/2020/09/08/audio-video/</url>
+    <content><![CDATA[<h2 id="视频理解中audio信息的使用"><a href="#视频理解中audio信息的使用" class="headerlink" title="视频理解中audio信息的使用"></a>视频理解中audio信息的使用</h2><h4 id="读取音频-amp-可视化波形图"><a href="#读取音频-amp-可视化波形图" class="headerlink" title="读取音频&amp;可视化波形图"></a>读取音频&amp;可视化波形图</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> matplotlib</span><br><span class="line">matplotlib.use(<span class="string">'agg'</span>) <span class="comment"># 服务器无GUI使用matplotlib绘图</span></span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> soundfile <span class="keyword">as</span> sf</span><br><span class="line"><span class="keyword">import</span> librosa.display</span><br><span class="line"></span><br><span class="line">wav_data, sr = sf.read(wav_file, dtype=<span class="string">'int16'</span>)</span><br><span class="line">samples = wav_data / <span class="number">32768.0</span>  <span class="comment"># Convert to [-1.0, +1.0]</span></span><br><span class="line"></span><br><span class="line">plt.figure()</span><br><span class="line">plt.title(<span class="string">'Waveform'</span>)</span><br><span class="line">librosa.display.waveplot(samples, sr=sr)</span><br><span class="line">plt.savefig(<span class="string">"wav.png"</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/Users/zhaoxiangming/Desktop/wav.png" alt="wav"></p>
+<p>声音波形图只是把一维的时域信号直观的显示出来，并没有什么有用的信息。</p>
+<h4 id="声谱图-spectrogram"><a href="#声谱图-spectrogram" class="headerlink" title="声谱图(spectrogram)"></a>声谱图(spectrogram)</h4><p>声谱图，简单来说就是将声音信号通过短时傅里叶变换，获得一张包含3个维度数据的热力图。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> librosa.display</span><br><span class="line"><span class="keyword">import</span> matplotlib</span><br><span class="line">matplotlib.use(<span class="string">'agg'</span>)</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment">#librosa.display.specshow(librosa.power_to_db(spectrogram.T, ref=np.max), sr=audio_sample_rate, x_axis='time', y_axis='linear')</span></span><br><span class="line">librosa.display.specshow(spectrogram.T, sr=audio_sample_rate, x_axis=<span class="string">'time'</span>, y_axis=<span class="string">'linear'</span>)</span><br><span class="line">plt.colorbar(format=<span class="string">'%+2.0f dB'</span>)</span><br><span class="line">plt.title(<span class="string">'spectrogram'</span>)</span><br><span class="line">plt.savefig(<span class="string">'spec.png'</span>)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Deep Learning</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Pytorch有哪些坑？</title>
+    <url>/2020/07/23/Pytorch%E6%9C%89%E5%93%AA%E4%BA%9B%E5%9D%91%EF%BC%9F/</url>
+    <content><![CDATA[<h3 id="1-torchvision-transform-ToTensor-中的细节"><a href="#1-torchvision-transform-ToTensor-中的细节" class="headerlink" title="1 torchvision.transform.ToTensor()中的细节"></a>1 torchvision.transform.ToTensor()中的细节</h3><p>功能：把一个取值范围是<code>[0,255]</code>的<code>PIL.Image</code>或者<code>shape</code>为<code>(H,W,C)</code>的<code>numpy.ndarray</code>,转换成形状为<code>(C,H,W)</code>，取值范围是<code>[0,1.0]</code>的<code>torch.FloatTensor</code>。</p>
+<p>注意：只有当<code>numpy.ndarray</code>的<code>dtype=unit8</code>时才会将像素值scale到<code>[0,1.0]</code>。</p>
+<a id="more"></a>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> PIL <span class="keyword">import</span> Image</span><br><span class="line"><span class="keyword">from</span> torchvision <span class="keyword">import</span> transforms</span><br><span class="line"></span><br><span class="line">transform = transforms.Compose([</span><br><span class="line">  transforms.ToTensor(),</span><br><span class="line">])</span><br><span class="line">img = Image.open(<span class="string">'cat.png'</span>) <span class="comment"># dtype=uint8</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># case1: 正常情况</span></span><br><span class="line">img1 = np.asarray(img)</span><br><span class="line">img1 = transform(img1)</span><br><span class="line">img1 = img3.permute([<span class="number">1</span>, <span class="number">2</span>, <span class="number">0</span>]) <span class="comment"># CxHxW -&gt; HxWxC，方便后续对比</span></span><br><span class="line">img1 = img1.cpu().data.numpy()</span><br><span class="line">print(img1[<span class="number">300</span>: <span class="number">305</span>, <span class="number">695</span>: <span class="number">700</span>, <span class="number">0</span>]) <span class="comment"># 打印部分像素值</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">[[0.43529412 0.44705883 0.45490196 0.45882353 0.45490196]</span></span><br><span class="line"><span class="string"> [0.41960785 0.43137255 0.4392157  0.44313726 0.4392157 ]</span></span><br><span class="line"><span class="string"> [0.40392157 0.41568628 0.42745098 0.43137255 0.43529412]</span></span><br><span class="line"><span class="string"> [0.3882353  0.40784314 0.41568628 0.41960785 0.42745098]</span></span><br><span class="line"><span class="string"> [0.38431373 0.4        0.4117647  0.41568628 0.42352942]]</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># case2: 错误操作，将unit8数据类型转换为float32，导致没有scale操作</span></span><br><span class="line">img2 = np.asarray(img, dtype=np.float32) <span class="comment"># 由于这里使得torch.ByteTensor=False，导致ToTensor()没有执行div(255)操作</span></span><br><span class="line">img2 = transform(img2)</span><br><span class="line">img2 = img2.permute([<span class="number">1</span>, <span class="number">2</span>, <span class="number">0</span>])</span><br><span class="line">img2 = img2.cpu().data.numpy()</span><br><span class="line">print(img2[<span class="number">300</span>: <span class="number">305</span>, <span class="number">695</span>: <span class="number">700</span>, <span class="number">0</span>])</span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">[[111. 114. 116. 117. 116.]</span></span><br><span class="line"><span class="string"> [107. 110. 112. 113. 112.]</span></span><br><span class="line"><span class="string"> [103. 106. 109. 110. 111.]</span></span><br><span class="line"><span class="string"> [ 99. 104. 106. 107. 109.]</span></span><br><span class="line"><span class="string"> [ 98. 102. 105. 106. 108.]]</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># case3: 正常情况，不使用ToTensor()执行scale操作</span></span><br><span class="line">img3 = np.asarray(img, dtype=np.float32)</span><br><span class="line">img3 = img3 / <span class="number">255.</span></span><br><span class="line">print(img3[<span class="number">300</span>: <span class="number">305</span>, <span class="number">695</span>: <span class="number">700</span>, <span class="number">0</span>])</span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">[[0.43529412 0.44705883 0.45490196 0.45882353 0.45490196]</span></span><br><span class="line"><span class="string"> [0.41960785 0.43137255 0.4392157  0.44313726 0.4392157 ]</span></span><br><span class="line"><span class="string"> [0.40392157 0.41568628 0.42745098 0.43137255 0.43529412]</span></span><br><span class="line"><span class="string"> [0.3882353  0.40784314 0.41568628 0.41960785 0.42745098]</span></span><br><span class="line"><span class="string"> [0.38431373 0.4        0.4117647  0.41568628 0.42352942]]</span></span><br><span class="line"><span class="string">"""</span></span><br></pre></td></tr></table></figure>
+
+<p>结论：使用<code>torchvision.transform.ToTensor()</code>时避免将图像的数据类型转为<code>float32</code>。</p>
+]]></content>
+      <categories>
+        <category>Deep Learning</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>隐秘的角落</title>
+    <url>/2021/03/26/hidden-corner/</url>
+    <content><![CDATA[<h3 id="为什么会有这个东西"><a href="#为什么会有这个东西" class="headerlink" title="为什么会有这个东西?"></a>为什么会有这个东西?</h3><p>工作之后，很少有时间去维护github上项目了，但是又不忍心忽略掉小伙伴的issues，为了能够更快的解决小伙伴的问题，所以决定将我的微信放在这里！如果遇到以下问题就加我好友吧：</p>
+<ul>
+<li>使用项目期间发现有解决不掉的bug</li>
+<li>觉得项目有缺陷，你有一些改进建议</li>
+<li>你的科研&amp;工作期间有一些问题想和我交流一下</li>
+<li>或者你有一些奇奇怪怪的想法</li>
+</ul>
+<p><img src="./images/Wechat.jpg" alt="WeChat"></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>learning-to-bert</title>
+    <url>/2020/12/11/learning-to-bert/</url>
+    <content><![CDATA[<p>在一些视频理解任务中，比如分类，VQA等，除了画面信息之外通常还会引入一些音频、文本等信息。为了使视频任务中引入标题信息（无论是否有帮助，但总要尝试），决定利用BERT来提取标题向量。</p>
+<p>看了google官方的<a href="https://github.com/google-research/bert" target="_blank" rel="noopener">bert</a>以及huggingface所实现的pytorch版本的<a href="https://github.com/huggingface/transformers" target="_blank" rel="noopener">transformers</a>，对于一个NLP小白来说可能是由于bert的变种太多实在太过眼花缭乱，所以本文的目标就是得到一个可提取中文文本特征向量的接口。</p>
+<p>对我而言，接触一个任务时习惯性的会考虑三个问题：数据、模型以及损失函数。这篇Blog也根据该思路来对BERT做一个学习。</p>
+<h2 id="BERT的输入是什么？"><a href="#BERT的输入是什么？" class="headerlink" title="BERT的输入是什么？"></a>BERT的输入是什么？</h2><p>该部分直接参考官方的<a href="https://github.com/google-research/bert/blob/master/tokenization.py" target="_blank" rel="noopener"><code>tokenization.py</code></a>来说明是如何对输入进行预处理的，其它框架虽然略有不同，但也都是由此演变而来。<code>tokenization.py</code>中包含了两个分词器：<code>BasicTokenizer</code>和<code>WordpieceTokenizer</code>，下面我们根据例子来说明是如何处理的。</p>
+<p>给定一段文本：<code>text=“新垣结衣（Aragaki Yui），1988年6月11日出生于日本冲绳县那霸市。日本女演员、歌手、模特\r\n”。</code></p>
+<h3 id="BasicTokenizer"><a href="#BasicTokenizer" class="headerlink" title="BasicTokenizer"></a>BasicTokenizer</h3><p><code>BasicTokenizer</code>是一个初步分词器。对于一个输入文本，处理流程为：转unicode-&gt;去除特殊字符-&gt;处理中文-&gt;按空格分词-&gt;去除多余字符和标点分词-&gt;再次按空格分词。</p>
+<h4 id="转unicode编码"><a href="#转unicode编码" class="headerlink" title="转unicode编码"></a>转unicode编码</h4><p>具体可以看<code>convert_to_unicode(text)</code>函数，大概流程是：对python3而言，输入为<code>str</code>类型时直接返回，为<code>bytes</code>型时转为<code>unicode</code>类型；对python2而言，输入为<code>str</code>类型时则转为<code>unicode</code>类型，为<code>unicode</code>类型时则直接返回。</p>
+<p>经过转码处理之后，text和原来相同：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>text=convert_to_unicode(text)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>text</span><br><span class="line"><span class="string">'新垣结衣（Aragaki Yui），1988年6月11日出生于日本冲绳县那霸市。日本女演员、歌手、模特\r\n'</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="清除无效字符及空白字符"><a href="#清除无效字符及空白字符" class="headerlink" title="清除无效字符及空白字符"></a>清除无效字符及空白字符</h4><p>该部分对应于<code>_clean_text(self, text)</code>函数，主要用于去除无效字符和多余空格。</p>
+<p>源码中的<code>ord()</code>函数是以一个字符（长度为1的字符串）作为参数，返回对应的 ASCII 数值，或者 Unicode 数值。</p>
+<p>整体流程如下：</p>
+<ul>
+<li>码位=0时</li>
+</ul>
+]]></content>
+  </entry>
+  <entry>
+    <title>learning-to-reinforcement-learning</title>
+    <url>/2020/11/29/learning-to-reinforcement-learning/</url>
+    <content><![CDATA[<p>强化学习记录，学习资料为ZhouBolei大神的<a href="https://github.com/zhoubolei/introRL" target="_blank" rel="noopener">introRL</a>。</p>
+<h2 id="Foundation"><a href="#Foundation" class="headerlink" title="Foundation"></a>Foundation</h2><ul>
+<li><input checked="" disabled="" type="checkbox"> Lecture1: Overview (课程概括与RL基础)<ul>
+<li><strong>Keywords</strong>: Agent, Environment, action, reward</li>
+<li>Supervised learning: Annotated images, data follows i.i.d distribution（条件独立同分布）</li>
+<li>Reinforcement learning: Data are not i.i.d, a correlated time series data(数据不符合i.i.d条件，前后有时序关系); No instant feedback or label for correct action(不能马上得到反馈)</li>
+<li>Features of RL: Trial-and-error exploration; Delayed reward; Time matters(sequential data, non i.i.d data); Agent’s actions changes the environment.</li>
+<li><strong>Rewards</strong>: A scalar feedback signal; Indicate how well agent is doing at step t; RL is based on the maximization of rewards.</li>
+<li>Sequential Decision Making: Trade-off between immediate reward and long-term reward.</li>
+<li>An RL agent components: Policy, Value function, Model.</li>
+<li>Agents type: Value-based agent, Policy-based agent, Actor-Critic agent.</li>
+<li>Exploration and Exploitation.</li>
+</ul>
+</li>
+</ul>
+<h2 id="Advanced-Topics"><a href="#Advanced-Topics" class="headerlink" title="Advanced Topics"></a>Advanced Topics</h2>]]></content>
+  </entry>
+  <entry>
+    <title>工作一年后想说的话</title>
+    <url>/2020/07/18/%E5%B7%A5%E4%BD%9C%E4%B8%80%E5%B9%B4%E5%90%8E%E6%83%B3%E8%AF%B4%E7%9A%84%E8%AF%9D/</url>
+    <content><![CDATA[<h3 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h3><p>想写点东西这个想法产生已经很久了，但是去年毕业时把博客相关的东西都搞丢了，所以博客也有一年多的时间没有更新了。正值工作一周年，内心或多或少有一些想说的话，终于下定决心重新折腾了一下，博客勉强恢复到了原来的样子，然后随便写点东西也算是对过去一年的交代。</p>
+<a id="more"></a>
+
+]]></content>
+      <categories>
+        <category>Life&amp;Thinking</category>
+      </categories>
+  </entry>
+  <entry>
     <title>分布式训练-PyTorch</title>
     <url>/2019/03/06/%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83-PyTorch/</url>
     <content><![CDATA[<p>并行训练（数据并行与模型并行）与分布式训练是深度学习中加速训练的两种常用方式，相对于并行训练，分布式是更优的加速方案，也是PyTorch官方推荐的方法：<br>Multi-Process Single-GPU<br>This is the highly recommended way to use DistributedDataParallel, with multiple processes, each of which operates on a single GPU. This is currently the fastest approach to do data parallel training using PyTorch and applies to both single-node(multi-GPU) and multi-node data parallel training. It is proven to be significantly faster than torch.nn.DataParallel for single-node multi-GPU data parallel training.</p>
@@ -265,17 +276,6 @@
       </categories>
   </entry>
   <entry>
-    <title>工作一年后想说的话</title>
-    <url>/2020/07/18/%E5%B7%A5%E4%BD%9C%E4%B8%80%E5%B9%B4%E5%90%8E%E6%83%B3%E8%AF%B4%E7%9A%84%E8%AF%9D/</url>
-    <content><![CDATA[<h3 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h3><p>想写点东西这个想法产生已经很久了，但是去年毕业时把博客相关的东西都搞丢了，所以博客也有一年多的时间没有更新了。正值工作一周年，内心或多或少有一些想说的话，终于下定决心重新折腾了一下，博客勉强恢复到了原来的样子，然后随便写点东西也算是对过去一年的交代。</p>
-<a id="more"></a>
-
-]]></content>
-      <categories>
-        <category>Life&amp;Thinking</category>
-      </categories>
-  </entry>
-  <entry>
     <title>并行训练-PyTorch</title>
     <url>/2019/03/03/%E5%B9%B6%E8%A1%8C%E8%AE%AD%E7%BB%83-PyTorch/</url>
     <content><![CDATA[<p>当我们的设备具有多个GPUs时，为了训练加速，我们通常会选用多卡并行训练，常见的并行训练方式有数据并行和模型并行。而PyTorch中也给我们提供了数据并行的接口<a href="https://github.com/pytorch/pytorch/blob/master/torch/nn/parallel/data_parallel.py" target="_blank" rel="noopener">DataParalle</a>。本文将对该并行过程做一个简单的总结。</p>
@@ -340,260 +340,139 @@
       </categories>
   </entry>
   <entry>
-    <title>学习OpenCV环境准备</title>
-    <url>/2018/09/01/%E5%AD%A6%E4%B9%A0OpenCV/%E5%AD%A6%E4%B9%A0OpenCV%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/</url>
-    <content><![CDATA[<h4 id="OpenCV配置"><a href="#OpenCV配置" class="headerlink" title="OpenCV配置"></a>OpenCV配置</h4><p>由于我的Ubuntu 16.04不知道什么时候已经安装了OpenCV，所以这里省略了安装过程。注意的是我的OpenCV应该不是按照官网的编译方式安装的，应该是之前有一些环境配置时所需依赖时以其他的方式安装的。</p>
+    <title>Finetuning with Tensorflow</title>
+    <url>/2018/12/16/Finetuning%20with%20Tensorflow/</url>
+    <content><![CDATA[<p>很多网络的特征提取部分都会用到fine-tunning,比如resnet-50,inception等,该文章以AlexNet为例,分析tensorflow如何进行微调</p>
+<p><strong>finetuning的三要素:</strong></p>
+<ul>
+<li>预训练模型,如resnet_v2_50.npy、resnet_v2_50.ckpt等。</li>
+<li>模型的网络结构定义。</li>
+<li>所需从预训练模型中恢复的变量，通常以排除的方式给出。</li>
+</ul>
 <a id="more"></a>
 
+<p><strong>Tips:</strong></p>
 <ul>
-<li>使用vs code编译OpenCV程序</li>
-</ul>
-<p>在vs code编译器中，用简单的读取图片的代码测试，运行时出现下面错误：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/tmp/cc9zYXpi.o: In function 'main':</span><br><span class="line">/home/xxx/c++/main.cpp:5: undefined reference to 'cvLoadImage'</span><br><span class="line">/home/xxx/c++/main.cpp:6: undefined reference to 'cvNamedWindow'</span><br><span class="line">/home/xxx/c++/main.cpp:7: undefined reference to 'cvShowImage'</span><br><span class="line">/home/xxx/c++/main.cpp:8: undefined reference to 'cvWaitKey'</span><br><span class="line">/home/xxx/c++/main.cpp:9: undefined reference to 'cvReleaseImage'</span><br><span class="line">/home/xxx/c++/main.cpp:10: undefined reference to 'cvDestroyWindow'</span><br><span class="line">collect2: error: ld returned 1 exit status</span><br><span class="line">The terminal process terminated with exit code: 1</span><br></pre></td></tr></table></figure>
-
-
-
-<p>我对于该错误出现的推测是，因为测试程序是在之前配置运行c++的环境下运行的，所以设置的默认编译指令也是用的之前的，所以对于当前的并不适用，应该需要对于OpenCV所需的指令重新设定默认编译指令。</p>
-<ul>
-<li>一种在终端编译的方式</li>
-</ul>
-<p>在vs code中由于设置的问题出现报错，那有一种通用的方式是在终端输入命令行完成编译。命令行如下：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">g++ main.cpp -o main_out `pkg-config --cflags --libs opencv`</span><br></pre></td></tr></table></figure>
-
-<p><strong>注意</strong>：这里是`而不是‘，否则无法编译成功。</p>
-<p><code>pkg-config</code>可用于列举某个库的相关信息，比如此库的路径/相关头文件等。比如：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">~$ pkg-config --cflags opencv</span><br><span class="line">-I/usr/include/opencv</span><br><span class="line"></span><br><span class="line">~$ pkg-config --libs opencv</span><br><span class="line">/usr/lib/x86_64-linux-gnu/libopencv_calib3d.so -lopencv_calib3d /usr/lib/x86_64-linux-gnu/libopencv_contrib.so -lopencv_contrib /usr/lib/x86_64-linux-gnu/libopencv_core.so -lopencv_core /usr/lib/x86_64-linux-gnu/libopencv_features2d.so -lopencv_features2d /usr/lib/x86_64-linux-gnu/libopencv_flann.so -lopencv_flann /usr/lib/x86_64-linux-gnu/libopencv_gpu.so -lopencv_gpu /usr/lib/x86_64-linux-gnu/libopencv_highgui.so -lopencv_highgui /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so -lopencv_imgproc /usr/lib/x86_64-linux-gnu/libopencv_legacy.so -lopencv_legacy /usr/lib/x86_64-linux-gnu/libopencv_ml.so -lopencv_ml /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so -lopencv_objdetect /usr/lib/x86_64-linux-gnu/libopencv_ocl.so -lopencv_ocl /usr/lib/x86_64-linux-gnu/libopencv_photo.so -lopencv_photo /usr/lib/x86_64-linux-gnu/libopencv_stitching.so -lopencv_stitching /usr/lib/x86_64-linux-gnu/libopencv_superres.so -lopencv_superres /usr/lib/x86_64-linux-gnu/libopencv_ts.so -lopencv_ts /usr/lib/x86_64-linux-gnu/libopencv_video.so -lopencv_video /usr/lib/x86_64-linux-gnu/libopencv_videostab.so -lopencv_videostab</span><br></pre></td></tr></table></figure>
-
-
-
-<p>通过这种方式就可以开始OpenCV的学习了，但是这样会很不方便吧，所以还是要在vs code中配置一套属于OpenCV的环境。</p>
-<ul>
-<li>配置vs code编译OpenCV程序的环境</li>
-</ul>
-<p>由上面的过程可以知道，究其原因就是之前的vs code设置的默认指令不匹配造成。同时也知道正确的指令应该是<code>g++ main.cpp -o main_test.out &#39;pkg-config --cflags --libs opencv&#39;</code>。<br>配置vs code的环境大同小异，这里简述一下：</p>
-<blockquote>
-<p>1.新建文件夹LearningOpenCV<br>2.在根目录下新建.vscode文件夹，并在该文件夹下新建launch.json,settings.json,tasks.json三个设置文件<br>3.其中launch.json,settings.json的设置可以参考其他，重要的是tasks.json中args参数的设置，这个是默认指令的设置。我的tasks.json设置如下：</p>
-</blockquote>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="comment">// See https://go.microsoft.com/fwlink/?LinkId=733558</span></span><br><span class="line">    <span class="comment">// for the documentation about the tasks.json format</span></span><br><span class="line">    <span class="string">"version"</span>: <span class="string">"2.0.0"</span>,</span><br><span class="line">    <span class="string">"tasks"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">"label"</span>: <span class="string">"build"</span>,</span><br><span class="line">            <span class="string">"type"</span>: <span class="string">"shell"</span>,</span><br><span class="line">            <span class="string">"command"</span>: <span class="string">"g++"</span>,</span><br><span class="line">            <span class="string">"args"</span>:[<span class="string">"-g"</span>,<span class="string">"$&#123;workspaceRoot&#125;/main.cpp"</span>,<span class="string">"-o"</span>,<span class="string">"main_test.out"</span>,<span class="string">"`pkg-config"</span>,<span class="string">"--cflags"</span>,<span class="string">"--libs"</span>,<span class="string">"opencv`"</span>],</span><br><span class="line">            <span class="string">"presentation"</span>: &#123;</span><br><span class="line">                <span class="string">"reveal"</span>: <span class="string">"always"</span>,</span><br><span class="line">                <span class="string">"panel"</span>: <span class="string">"new"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">"problemMatcher"</span>:</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="string">"owner"</span>: <span class="string">"cpp"</span>,</span><br><span class="line">                <span class="string">"fileLocation"</span>:[<span class="string">"relative"</span>, <span class="string">"$&#123;workspaceRoot&#125;"</span>],</span><br><span class="line">                <span class="string">"pattern"</span>:[</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="string">"regexp"</span>: <span class="string">"^([^\\\\s].*)\\\\((\\\\d+,\\\\d+)\\\\):\\\\s*(.*)$"</span>,</span><br><span class="line">                        <span class="string">"file"</span>: <span class="number">1</span>,</span><br><span class="line">                        <span class="string">"line"</span>: <span class="number">2</span>,</span><br><span class="line">                        <span class="string">"column"</span>: <span class="number">3</span>,</span><br><span class="line">                        <span class="string">"severity"</span>: <span class="number">4</span>,</span><br><span class="line">                        <span class="string">"location"</span>: <span class="number">2</span>,</span><br><span class="line">                        <span class="string">"message"</span>: <span class="number">5</span></span><br><span class="line">                    &#125;</span><br><span class="line">                ]</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可以看到tasks.json中的args参数正是我们上面说到的终端指令。<br><strong>注意</strong>：由于args的参数设置时不能包含空格，所以<code>pkg-config --cflags --libs opencv</code>需要不同的引号分开，同时`注意不要搞错或者忘记。<br>到此为止，vs code的OpenCV编译环境已经完成了，接下来就在Ubuntu下面开始OpenCV的学习吧！</p>
-]]></content>
-      <categories>
-        <category>Learning OpenCV</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>第2章 OpenCV入门</title>
-    <url>/2018/09/03/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC2%E7%AB%A0%20OpenCV%E5%85%A5%E9%97%A8/</url>
-    <content><![CDATA[<h4 id="OpenCV的结构和内容"><a href="#OpenCV的结构和内容" class="headerlink" title="OpenCV的结构和内容"></a>OpenCV的结构和内容</h4><p>OpenCV主体分为五个模块：</p>
-<ul>
-<li>CV模块：包含基本的图像处理函数和高级的计算机视觉算法。</li>
-<li>ML库：机器学习库，包含一些基于统计的分类和聚类工具。</li>
-<li>HighGUI：包含图像和视频输入/输出的函数。</li>
-<li>CXCore：包含OpenCV的一些基本数据结构和相关函数。</li>
-<li>CvAux模块：存放一些即将被淘汰的算法和函数。<a id="more"></a>
+<li><p>所定义网络结构中的变量名需要和预训练模型中的变量名保持相同。预训练模型中的变量名可有以下方式查看:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 使用tf.train.NewCheckpointReader直接读取ckpt文件里的变量</span></span><br><span class="line"><span class="keyword">from</span> tensorflow.python <span class="keyword">import</span> pywrap_tensorflow</span><br><span class="line"></span><br><span class="line">reader = pywarp_tensorflow.NewCheckpointReader(checkpoint_path)</span><br><span class="line">var_to_shape_map = reader.get_variable_to_shape_map()</span><br><span class="line"><span class="keyword">for</span> key <span class="keyword">in</span> var_to_shape_map:</span><br><span class="line">    print(<span class="string">"tensor_name: "</span>, key)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>恢复部分变量时可借助slim。如:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">variables_to_restore = slim.get_varibales_to_restore(exclude=[args.resnet_model] + <span class="string">"logits"</span>, <span class="string">"optimizer_vars"</span>,  <span class="string">"DeepLab_v3/ASPP_layer"</span>, <span class="string">"DeepLab_v3/logits"</span>])</span><br><span class="line">restorer = tf.train.Saver(variables_to_restore)</span><br><span class="line">restorer.restore(sess, <span class="string">"./resnet/checkpoints/"</span> + args.resnet_model + <span class="string">"./ckpt"</span>)</span><br></pre></td></tr></table></figure>
 
 </li>
 </ul>
-<h4 id="显示图像"><a href="#显示图像" class="headerlink" title="显示图像"></a>显示图像</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"opencv/cv.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"opencv/highgui.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    IplImage *img = cvLoadImage(<span class="string">"./Lena.jpg"</span>);</span><br><span class="line">    cvNamedWindow(<span class="string">"Example1"</span>, CV_WINDOW_AUTOSIZE);</span><br><span class="line">    cvShowImage(<span class="string">"Example1"</span>, img);</span><br><span class="line">    cvWaitKey(<span class="number">0</span>);</span><br><span class="line">    cvReleaseImage(&amp;img);</span><br><span class="line">    cvDestroyWindow(<span class="string">"Example1"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><code>cvLoadImage()</code>函数可读取绝大多数格式类型的图像文件，包括BMP,DIB,JPEG,JPE,PNG,PBM,TIFF等。该函数执行后返回一个指针，此指针指向一块为描述该图像文件的数据结构（IplImage）而分配的内存块。</p>
-<h4 id="简单的变换"><a href="#简单的变换" class="headerlink" title="简单的变换"></a>简单的变换</h4><p>实现变换的方式：新建一个IplImage结构，然后对原图执行某种操作，将结构写入到新建的结构中，返回。<br>新建IplImage的方式：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">IplImage* out = cvCreateImage(</span><br><span class="line">    cvSize(in-&gt;<span class="built_in">width</span> / <span class="number">2</span>, in-&gt;<span class="built_in">height</span> / <span class="number">2</span>),</span><br><span class="line">    in-&gt;depth,</span><br><span class="line">    in-&gt;nChannels);</span><br></pre></td></tr></table></figure>
-
-
-
-<p>分配新的图像空间时是从旧的图像中读取所需的信息。在OpenCV中，所有的重要的数据都是以数据体的形式实现，并且以数据体指针的形式传递。</p>
 ]]></content>
       <categories>
-        <category>Learning OpenCV</category>
+        <category>Deep Learning</category>
       </categories>
   </entry>
   <entry>
-    <title>第4章 细说HighGUI</title>
-    <url>/2018/09/06/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC4%E7%AB%A0%20%E7%BB%86%E8%AF%B4HighGUI/</url>
-    <content><![CDATA[<h4 id="创建窗口"><a href="#创建窗口" class="headerlink" title="创建窗口"></a>创建窗口</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cvNameWindow</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">int</span> flags=CV_WINDOW_AUTOSIZE)</span></span>; <span class="comment">// 创建窗口</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span>* <span class="title">cvGetWindowHandle</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* name)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">const</span> <span class="keyword">char</span>* <span class="title">cvGetWindowName</span><span class="params">(<span class="keyword">void</span>* window_handle)</span></span>; <span class="comment">// 获取窗口名称</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvResizeWindow</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">int</span> <span class="built_in">width</span>, <span class="keyword">int</span> <span class="built_in">height</span>)</span></span>; <span class="comment">// 调整窗口大小</span></span><br></pre></td></tr></table></figure>
+    <title>PyTorch参数初始化及Finetunning</title>
+    <url>/2018/11/06/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>PyTorch的代码中很多都有显式的参数初始化过程（默认的初始化形式是什么？），本文将对其做一个总结。</p>
 <a id="more"></a>
 
-<h4 id="载入图像"><a href="#载入图像" class="headerlink" title="载入图像"></a>载入图像</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function">IplImage* <span class="title">cvLoadImage</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* filename, <span class="keyword">int</span> iscolor=CV_LOAD_IMAGE_COLOR)</span></span>; <span class="comment">// 从磁盘载入图像</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cvSaveImage</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* filename, <span class="keyword">const</span> CvArr* <span class="built_in">image</span>)</span></span>; <span class="comment">// 保存图像</span></span><br></pre></td></tr></table></figure>
+<h2 id="参数初始化"><a href="#参数初始化" class="headerlink" title="参数初始化"></a>参数初始化</h2><p>参数的初始化其实就是对参数进行赋值。网络中所需要学习的参数其实都是<code>Variable</code>，它其实是对<code>Tensor</code>的封装，同时提供了<code>data</code>，<code>grad</code>等接口，这就意味着我们可以直接对这些参数进行赋值操作。这就是PyTorch简洁高效所在。</p>
+<p><a href="https://tramac.github.io/2019/04/08/PyTorch参数初始化及Finetunning/variable.png"><img src="https://tramac.github.io/2019/04/08/PyTorch%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96%E5%8F%8AFinetunning/variable.png" alt="img"></a></p>
+<p>PyTorch中有多种初始化方式，但是其作者所推崇的方式如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">weight_init</span><span class="params">(m)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> isinstance(m, nn.Conv2d):</span><br><span class="line">        n = m.kernel_size[<span class="number">0</span>] * m.kernel_size[<span class="number">1</span>] * m.out_channels</span><br><span class="line">        m.weight.data.normal_(<span class="number">0</span>, math.sqrt(<span class="number">2.</span> / n))</span><br><span class="line">    <span class="keyword">elif</span> isinstance(m, nn.BatchNorm2d):</span><br><span class="line">        m.weight.data.fill_(<span class="number">1</span>)</span><br><span class="line">        m.bias.data.zero_()</span><br></pre></td></tr></table></figure>
 
-<h4 id="显示图像"><a href="#显示图像" class="headerlink" title="显示图像"></a>显示图像</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvShowImage</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">const</span> CvArr* <span class="built_in">image</span>)</span></span>; <span class="comment">// 显示图像</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvMoveWindow</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">int</span> x, <span class="keyword">int</span> y)</span></span>; <span class="comment">// 将窗口移动到其左上角为x, y的位置</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvDestroyAllWindows</span><span class="params">(<span class="keyword">void</span>)</span></span>; <span class="comment">// 释放所有窗口</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cvStartWindowThread</span><span class="params">(<span class="keyword">void</span>)</span></span>; <span class="comment">// 创建一个线程用来自动更新窗口以及处理其他窗口触发事件</span></span><br></pre></td></tr></table></figure>
+<h2 id="Finetunning"><a href="#Finetunning" class="headerlink" title="Finetunning"></a>Finetunning</h2><p>通常在加载了预训练模型的参数之后，我们需要finetune模型，一般有以下两种方式：</p>
+<h4 id="局部微调"><a href="#局部微调" class="headerlink" title="局部微调"></a>局部微调</h4><p>冻结其它层，只调节最后的几层。其实不训练也就意味着不进行梯度计算，PyTorch中提供的<code>requires_grad</code>使得对训练的控制变得非常简单。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">model = torchvision.models.resnet18(pretrained=<span class="literal">True</span>)</span><br><span class="line"><span class="keyword">for</span> param <span class="keyword">in</span> model.parameters():</span><br><span class="line">    param.requires_grad = <span class="literal">False</span></span><br><span class="line"><span class="comment"># 替换最后的全连接层，新构造的模块的参数默认requires_grad=True</span></span><br><span class="line">model.fc = nn.Linear(<span class="number">512</span>, <span class="number">100</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 只优化最后的分类层</span></span><br><span class="line">optimizer = optim.SGD(model.fc.parameters(), lr=<span class="number">1e-2</span>, momentum=<span class="number">0.9</span>)</span><br></pre></td></tr></table></figure>
 
-<h4 id="鼠标事件"><a href="#鼠标事件" class="headerlink" title="鼠标事件"></a>鼠标事件</h4><p>鼠标事件响应采用回调函数的方式来处理。即，为了可以响应鼠标点击事件，首先必须创建一个回调函数，使鼠标点击事件发生时，OpenCV可以调用这个函数。创建这个函数之后，需要在OpenCV中注册这个函数，以便特定窗口被触发鼠标事件以后，OpenCV可以正确调用这个函数。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CvMouseCallback</span><span class="params">(<span class="keyword">int</span> event, <span class="keyword">int</span> x, <span class="keyword">int</span> y, <span class="keyword">int</span> flags, <span class="keyword">void</span>* param)</span></span>; <span class="comment">// 回调函数的定义</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSetMouseCallback</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* window_name, CvMouseCallback on_mouse, <span class="keyword">void</span>* param=<span class="literal">NULL</span>)</span></span>; <span class="comment">// 注册回调函数</span></span><br></pre></td></tr></table></figure>
+<h4 id="全局微调"><a href="#全局微调" class="headerlink" title="全局微调"></a>全局微调</h4><p>对全局都进行finetune，但是希望该换过的层和其它层的学习率不同，这是可以把其它层和新层在<code>optimizer</code>中单独赋予不同的学习率。如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ignored_params = list(map(id, model.fc.parameters()))</span><br><span class="line">base_params = filter(<span class="keyword">lambda</span> p: id(p) <span class="keyword">not</span> <span class="keyword">in</span> ignored_params,</span><br><span class="line">                     model.parameters())</span><br><span class="line"></span><br><span class="line">optimizer = torch.optim.SGD([</span><br><span class="line">            &#123;<span class="string">'params'</span>: base_params&#125;,</span><br><span class="line">            &#123;<span class="string">'params'</span>: model.fc.parameters(), <span class="string">'lr'</span>: <span class="number">1e-3</span>&#125;</span><br><span class="line">            ], lr=<span class="number">1e-2</span>, momentum=<span class="number">0.9</span>)</span><br></pre></td></tr></table></figure>
 
-
-
-<h4 id="Sliders-Trackbars-Switches"><a href="#Sliders-Trackbars-Switches" class="headerlink" title="Sliders, Trackbars, Switches"></a>Sliders, Trackbars, Switches</h4><p>滑动条的实现</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 创建滑动条函数</span><br><span class="line">int cvCreateTrackbar(const char* trackbar_name, const char* window_name, int* value, int count, CvTrackbarCallback on_change);</span><br><span class="line">&#x2F;&#x2F; 读取滑动条的value值</span><br><span class="line">int cvGetTrackbarPos(const char* trackbar_name, const char* window_name);</span><br><span class="line">&#x2F;&#x2F; 设置滑动条的value值</span><br><span class="line">void cvSetTrackbarPos(const char* trackbar_name, const char* window_name, int pos);</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Learning OpenCV</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>第3章 初探OpenCV</title>
-    <url>/2018/09/05/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC3%E7%AB%A0%20%E5%88%9D%E6%8E%A2OpenCV/</url>
-    <content><![CDATA[<h4 id="OpenCV的基本数据类型"><a href="#OpenCV的基本数据类型" class="headerlink" title="OpenCV的基本数据类型"></a>OpenCV的基本数据类型</h4><a id="more"></a>
-
-<ul>
-<li><strong>基本数据类型</strong></li>
-</ul>
-<table>
-<thead>
-<tr>
-<th align="left">结构</th>
-<th align="left">成员</th>
-<th align="left">意义</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">CvPoint</td>
-<td align="left">int x, y</td>
-<td align="left">图像中的点</td>
-</tr>
-<tr>
-<td align="left">CvPoint2D32f</td>
-<td align="left">float x, y</td>
-<td align="left">二维空间中的点</td>
-</tr>
-<tr>
-<td align="left">CvPoint3D32f</td>
-<td align="left">float x, y， z</td>
-<td align="left">三维空间中的点</td>
-</tr>
-<tr>
-<td align="left">CvSize</td>
-<td align="left">int width, height</td>
-<td align="left">图像的尺寸</td>
-</tr>
-<tr>
-<td align="left">CvRect</td>
-<td align="left">int x, y, width, height</td>
-<td align="left">图像的部分区域</td>
-</tr>
-<tr>
-<td align="left">CvScalar</td>
-<td align="left">double val[4]</td>
-<td align="left">RGBA值</td>
-</tr>
-</tbody></table>
-<h4 id="CvMat矩阵结构"><a href="#CvMat矩阵结构" class="headerlink" title="CvMat矩阵结构"></a>CvMat矩阵结构</h4><p>在OpenCV中没有向量（vector）结构，需要时可以用列矩阵代替。<br>矩阵由宽度（width），高度（height），类型（type），行数据长度（step）和一个指向数据的指针构成。</p>
-<ul>
-<li><strong>矩阵头的定义</strong>：</li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">typeded <span class="class"><span class="keyword">struct</span> <span class="title">CvMat</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> type;</span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">step</span>;</span><br><span class="line">    <span class="keyword">int</span>* refcount;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        unchar* ptr;</span><br><span class="line">        short* s;</span><br><span class="line">        <span class="keyword">int</span>* i;</span><br><span class="line">        <span class="keyword">float</span>* fl;</span><br><span class="line">        <span class="keyword">double</span>* db;</span><br><span class="line">    &#125;data;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        <span class="keyword">int</span> rows;</span><br><span class="line">        <span class="keyword">int</span> <span class="built_in">height</span>;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        <span class="keyword">int</span> cols;</span><br><span class="line">        <span class="keyword">int</span> <span class="built_in">width</span>;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125; CvMat;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>矩阵的创建与释放</strong></li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function">CvMat* <span class="title">cvCreateMat</span><span class="params">(<span class="keyword">int</span> rows, <span class="keyword">int</span> cols, <span class="keyword">int</span> type)</span></span>; </span><br><span class="line"><span class="function">CvMat* <span class="title">cvCreateMatHeader</span><span class="params">(<span class="keyword">int</span> rows, <span class="keyword">int</span> cols, <span class="keyword">int</span> type)</span></span>; <span class="comment">//只创建CvMat结构，不分配存储空间</span></span><br><span class="line"><span class="function">CvMat* <span class="title">cvInitMatHeader</span><span class="params">(CvMat* mat, <span class="keyword">int</span> rows, <span class="keyword">int</span> cols, <span class="keyword">int</span> type, <span class="keyword">void</span>* data=<span class="literal">NULL</span>, <span class="keyword">int</span> <span class="built_in">step</span>=CV_AUTOSTEP)</span></span>; <span class="comment">//在已存在的结构上初始化CvMat矩阵头</span></span><br><span class="line"><span class="function">CvMat* <span class="title">cvCloneMat</span><span class="params">(<span class="keyword">const</span> CvMat* mat)</span></span>; <span class="comment">// 克隆</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvReleaseMat</span><span class="params">(CvMat** mat)</span></span>; <span class="comment">// 释放</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>矩阵数据的存取</strong></li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">float</span> element_3_2 = CV_MAT_ELEM(*mat, <span class="keyword">float</span>, <span class="number">3</span>, <span class="number">2</span>);</span><br><span class="line"><span class="function">uchar* <span class="title">cvPtr2D</span><span class="params">(<span class="keyword">const</span> CvArr* arr, <span class="keyword">int</span> idx0, <span class="keyword">int</span> idx1, <span class="keyword">int</span>* type=<span class="literal">NULL</span>)</span></span>; <span class="comment">// 返回指向所需元素的指针</span></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">cvGetReal2D</span><span class="params">(<span class="keyword">const</span> CvArr* arr, <span class="keyword">int</span> indx0, <span class="keyword">int</span> idx1)</span></span>; <span class="comment">// 返回矩阵元素的实际值</span></span><br><span class="line"><span class="function">CvScalar <span class="title">cvGet2D</span><span class="params">(<span class="keyword">const</span> CvArr* arr, <span class="keyword">int</span> idx0, <span class="keyword">int</span> idx1)</span></span>; <span class="comment">// 返回CvScalar类型</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSetReal2D</span><span class="params">(CvArr* arr, <span class="keyword">int</span> idx0, <span class="keyword">int</span> idx1, <span class="keyword">double</span> value)</span></span>; <span class="comment">// 设置值</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSet2D</span><span class="params">(CvArr* arr, <span class="keyword">int</span> idx0, <span class="keyword">int</span> idx1, CvScalar value)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h4 id="IplImage数据结构"><a href="#IplImage数据结构" class="headerlink" title="IplImage数据结构"></a>IplImage数据结构</h4><ul>
-<li><strong>IplImage结构</strong></li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IplImage</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> nSize;</span><br><span class="line">    <span class="keyword">int</span> ID;</span><br><span class="line">    <span class="keyword">int</span> nChannels;</span><br><span class="line">    <span class="keyword">int</span> alphaChannel;</span><br><span class="line">    <span class="keyword">int</span> depth;</span><br><span class="line">    <span class="keyword">char</span> colorModel[<span class="number">4</span>];</span><br><span class="line">    <span class="keyword">char</span> dataOrder;</span><br><span class="line">    <span class="keyword">int</span> origin;</span><br><span class="line">    <span class="keyword">int</span> align;</span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">width</span>;</span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">height</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">IplROI</span> *<span class="title">roi</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">IplImage</span> *<span class="title">maskROI</span>;</span></span><br><span class="line">    <span class="keyword">void</span> *imageId;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">IplTileInfo</span> *<span class="title">tileInfo</span>;</span></span><br><span class="line">    <span class="keyword">int</span> imageSize;</span><br><span class="line">    <span class="keyword">char</span> *imageData;</span><br><span class="line">    <span class="keyword">int</span> widthStep;</span><br><span class="line">    <span class="keyword">int</span> BorderMode[<span class="number">4</span>];</span><br><span class="line">    <span class="keyword">int</span> BorderConst[<span class="number">4</span>];</span><br><span class="line">    <span class="keyword">char</span> *imageDataOrigin;</span><br><span class="line">&#125; IplImage;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>ROI的设置与重置</strong></li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSetImageROI</span><span class="params">(IplImage* <span class="built_in">image</span>, CvRect <span class="built_in">rect</span>)</span></span>; <span class="comment">// 设置ROI</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvResetImageROI</span><span class="params">(IplImage* <span class="built_in">image</span>)</span></span>; <span class="comment">// 取消ROI</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="画图"><a href="#画图" class="headerlink" title="画图"></a>画图</h4><ul>
-<li><strong>直线</strong></li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvLine</span><span class="params">(CvArr* <span class="built_in">array</span>, CvPoint pt1, CvPoint pt2, CvScalar color, <span class="keyword">int</span> thickness=<span class="number">1</span>, <span class="keyword">int</span> connectivity=<span class="number">8</span>)</span></span>; <span class="comment">// 直线</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvRectangle</span><span class="params">(CvArr* <span class="built_in">array</span>, CvPoint pt1, CvPoint pt2, CvScalar color, <span class="keyword">int</span> thickness=<span class="number">1</span>)</span></span>; <span class="comment">// 矩形</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>圆形和椭圆</strong></li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvCircle</span><span class="params">(CvArr* <span class="built_in">array</span>, CvPoint center, <span class="keyword">int</span> radius, CvScalar color, <span class="keyword">int</span> thickness=<span class="number">1</span>, <span class="keyword">int</span> connectivity=<span class="number">8</span>)</span></span>; <span class="comment">// 圆形</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvEllipse</span><span class="params">(CvArr* img, CvPoint center, CvSize axes, <span class="keyword">double</span> angle, <span class="keyword">double</span> start_angle, <span class="keyword">double</span> end_angle, CvScalar color, <span class="keyword">int</span> thickness=<span class="number">1</span>, <span class="keyword">int</span> line_type=<span class="number">8</span>)</span></span>; <span class="comment">// 椭圆</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>多边形</strong></li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvFillPoly</span><span class="params">(CvArr* img, CvPoint** pts, <span class="keyword">int</span>* npts, <span class="keyword">int</span> contours, CvScalar color, <span class="keyword">int</span> line_type=<span class="number">8</span>)</span></span>; <span class="comment">// 多边形</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>字体和文字</strong></li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvPutText</span><span class="params">(CvArr* img, <span class="keyword">const</span> <span class="keyword">char</span>* <span class="built_in">text</span>, CvPoint origin, <span class="keyword">const</span> CvFont* font, CvScalr color)</span></span>; <span class="comment">// 图像上输出文本</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="数据存储"><a href="#数据存储" class="headerlink" title="数据存储"></a>数据存储</h4><ul>
-<li><strong>矩阵的存储和读取</strong></li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">CvMat A = cvMat(<span class="number">5</span>, <span class="number">5</span>, CV_32F, the_matrix_data); <span class="comment">// 创建矩阵</span></span><br><span class="line">cvSave(<span class="string">"my_matrix.xml"</span>, &amp;A); <span class="comment">// 存储矩阵</span></span><br><span class="line">CvMat* A1 = (CvMat*) cvLoad(<span class="string">"my_matrix.xml"</span>); <span class="comment">// 读取矩阵</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>xml格式文件的新建，存储与读取</strong></li>
+<p>其中<code>base_params</code>使用<code>1e-3</code>来训练，<code>model.fc.parameters</code>使用<code>1e-2</code>来训练，<code>momentum</code>是二者共有的。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://blog.csdn.net/u012759136/article/details/65634477" target="_blank" rel="noopener">PyTorch参数初始化和Finetune</a></li>
 </ul>
 ]]></content>
       <categories>
-        <category>Learning OpenCV</category>
+        <category>Deep Learning</category>
       </categories>
   </entry>
   <entry>
-    <title>第5章 图像处理</title>
-    <url>/2018/09/10/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC5%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</url>
-    <content><![CDATA[<h4 id="平滑处理-模糊处理"><a href="#平滑处理-模糊处理" class="headerlink" title="平滑处理(模糊处理)"></a>平滑处理(模糊处理)</h4><p>平滑处理的用途有很多，最常见的是用来减少图像上的噪声或者失真。降低图像分辨率时，平滑处理很重要。目前OpenCV可提供五种不同的平滑操作，分别为简单模糊，简单无缩放变换的模糊，中值模糊，高斯模糊以及双边滤波。</p>
+    <title>第9章 图像局部与分割</title>
+    <url>/2018/09/22/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/</url>
+    <content><![CDATA[<h4 id="局部与分割"><a href="#局部与分割" class="headerlink" title="局部与分割"></a>局部与分割</h4><p>简单来讲，分割就是如何从图像中将目标或部分目标分割出来。处了从图像中分割出前景目标之外，在很多情况下我们也希望将感兴趣的目标区域分割出来。<br>本章主要研究其他用于查找、填充和分离一幅图像中的目标以及部分目标物体的算法。</p>
 <a id="more"></a>
 
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 平滑操作实现函数</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSmooth</span><span class="params">(<span class="keyword">const</span> CvArr* src, CvArr* dst, <span class="keyword">int</span> smoothtype=CV_GAUSSIAN, <span class="keyword">int</span> param1=<span class="number">3</span>, <span class="keyword">int</span> param2=<span class="number">0</span>, <span class="keyword">double</span> param3=<span class="number">0</span>, <span class="keyword">double</span> param4=<span class="number">0</span>)</span></span>;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="图像形态学"><a href="#图像形态学" class="headerlink" title="图像形态学"></a>图像形态学</h4><ul>
-<li><strong>膨胀和腐蚀</strong></li>
-</ul>
-<p>膨胀是指将一些图像（或图像中的一部分区域，称之为A）与核（称之为B）进行卷积。通常情况下，核是一个小的中间带有参考点的实心正方形或圆盘。核可以视为模板或掩码，膨胀是求局部最大值的操作。核B与图像卷积，即计算核B覆盖的区域的像素点最大值，并把这个最大值赋值给参考点指定的像素。这样就会使图像中的高亮区域逐渐增长。<br>腐蚀是膨胀的反操作。腐蚀操作要计算核区域像素的最小值。当核B与图像卷积时，计算被B覆盖区域的最小像素值，并把这个值放到参考点上。腐蚀能够消除细的凸起。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 膨胀操作</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvErode</span><span class="params">(IplImage* src, IplImage* dst, IplConvKernel* B=<span class="literal">NULL</span>, <span class="keyword">int</span> iterations=<span class="number">1</span>)</span></span>;</span><br><span class="line"><span class="comment">// 腐蚀操作</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvDilate</span><span class="params">(IplImage* src, IplImage* dst, IplConvKernel* B=<span class="literal">NULL</span>, <span class="keyword">int</span> iterations=<span class="number">1</span>)</span></span>;</span><br><span class="line"><span class="comment">// 自定义核B</span></span><br><span class="line"><span class="function">IplConvKernel* <span class="title">cvCreateStructuringElementEx</span><span class="params">(<span class="keyword">int</span> cols, <span class="keyword">int</span> rows, <span class="keyword">int</span> anchor_x, <span class="keyword">int</span> anchor_y, <span class="keyword">int</span> shape, <span class="keyword">int</span>* values=<span class="literal">NULL</span>)</span></span>;</span><br><span class="line"><span class="comment">// 释放自定义的核</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvReleaseStructuringElement</span><span class="params">(IplConvKernel** element)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>形态核与卷积核不同，不需要任何的数值填充核，它只是标明了计算最大值或最小值的范围。</p>
+<h4 id="背景减除（背景差分）"><a href="#背景减除（背景差分）" class="headerlink" title="背景减除（背景差分）"></a>背景减除（背景差分）</h4><p>由于背景减除简单而且摄像机在很多情况下是固定的，在视频安全领域，背景减除也许是最基本的图像处理操作。所以，背景模型的建立至关重要。<br>一旦背景模型建立，将背景模型和当前的图像进行比较，然后减去这些已知的背景减除，则剩下的目标物大致就是所求的前景目标了。<br>当然，“背景”在不同的应用场合下是一个很难定义的问题，后续会介绍一些背景建模的方法。</p>
 <ul>
-<li><strong>更通用的形态学</strong></li>
+<li><strong>背景减除的缺点</strong></li>
 </ul>
-<p>基本的腐蚀和膨胀操作通常用于处理布尔图像和图像掩码。然而，在处理灰度或彩色图像时，往往需要一些额外的操作。<br><strong>开运算：</strong>先腐蚀再膨胀，通常可以用来统计二值图像中的区域数。开运算消除高于其邻近点的孤立点。<br><strong>闭运算：</strong>先膨胀再腐蚀，对于连通区域分析，通常先采用闭运算来消除纯粹由噪声引起的部分，然后用开运算来连接邻近的区域。闭运算消除低于其邻近点的孤立点。<br><strong>形态学梯度：</strong>对二值图像，可以将团块的边缘突出出来。能够描述图像亮度变化的剧烈程度。<br><strong>礼帽和黑帽：</strong>两者分别用于分离比邻近的点亮或暗的一些斑块。当试图孤立的部分相对于其邻近的部分有亮度变化时，就可以使用这些方法。礼帽操作是从A中减去了A的开运算。黑帽操作是A的闭运算减去A。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 通用的形态学操作函数</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvMorphologyEx</span><span class="params">(<span class="keyword">const</span> CvArr* src, CvArr* dst, CvArr* temp, IplConvKernel* element, <span class="keyword">int</span> operation, <span class="keyword">int</span> iterations=<span class="number">1</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>背景减除的一个缺点是建立在一个不常成立的假设：所有像素点是独立的。因为这种建模方法在计算像素变化时并没有考虑它相邻的像素。<br>其中一种解决方式是建立一个多元模型，它把基本的像素独立模型扩展为包含了相邻像素的亮度的基本场景。在这种情况下，我们用相邻像素的亮度来区别相邻像素值的相对明暗。但是这种模型消耗两倍的内存和更多的计算量。<br>但是在实际应用中，由于额外的开销，通常会避免使用复杂的模型。当像素独立假设不成立情况下，我们可以更有效地把精力投入到清除那些错误的检测结果中。本章将通过使用连通域，并且后续的方法严格限制在像素变化独立的假设基础上。</p>
+<ul>
+<li><strong>场景建模</strong></li>
+</ul>
+<p>通常，一个场景模型可能包含许多层次，从新的场景到旧的场景再到背景。</p>
+<ul>
+<li><strong>像素片段</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 对任意直线上的像素进行采样</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cvInitLineIterator</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* <span class="built_in">image</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvPoint pt1,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvPoint pt2,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvLineIterator* line_iterator,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">int</span> connectivity=<span class="number">8</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">int</span> left_to_right=<span class="number">0</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li><strong>漫水填充法</strong></li>
+<li><strong>帧差</strong></li>
 </ul>
-<p>漫水填充法经常被用来标记或分离图像的一部分以便对其进行进一步处理或分析；也可以用来从输入图像获取掩码区域，掩码会加速处理过程，或只处理掩码指定的像素点。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 填充算法函数原型</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvFloodFill</span><span class="params">(Iplimage* img, CvPoint seedPoint, CvScalar newVal, CvScalar loDiff=cvScalarAll(<span class="number">0</span>), CvScalar upDiff=cvScalarAll(<span class="number">0</span>), CvConnectedComp* comp=<span class="number">4</span>, CvArr* mask=<span class="literal">NULL</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>最简单的背景减除方法就是用一帧减去另一帧，然后将足够大的差别标为前景。这种方法往往能捕捉运动目标的边缘。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 计算帧差</span></span><br><span class="line">cvAbsDiff(frameTime1, frameTime2, frameForeground);</span><br></pre></td></tr></table></figure>
 
 
 
-<ul>
-<li><strong>尺寸调整</strong></li>
-</ul>
-<p>cvResize()函数用于放大或缩小图像。该函数可以将源图像精确转换为目标图像的尺寸。如果源图像中设置了ROI，那么cvResize()将会对ROI区域调整尺寸，以匹配目标图像，同样，如果目标图像中已经设置ROI的值，那么cvResize()将会源图像进行尺寸调整并填充到目标图像的ROI中。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// cvRsize()函数原型</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvResize</span><span class="params">(<span class="keyword">const</span> CvArr* src, CvArr* dst, <span class="keyword">int</span> interpolation=CV_INTER_LINEAR)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>由于像素值总会受到噪声和波动的影响，我们应该忽略很小的差异，标识其余的作为较大的差别：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">cvThreshold(frameForeground, frameForeground, <span class="number">15</span>, <span class="number">255</span>, CV_THRESH_BINARY);</span><br></pre></td></tr></table></figure>
 
 
 
 <ul>
-<li><strong>图像金字塔</strong></li>
+<li><strong>平均背景法</strong></li>
 </ul>
-<p>图像金字塔是一个图像集合，集合中所有的图像都源于同一个原始图像，而且是通过对原始图像连续降采样获得，直到达到某个终止条件才停止降采样。在应用中常有两种类型的图像金字塔：高斯金字塔和拉普拉斯金字塔。高斯金字塔用来向下降采样图像，而拉普拉斯金字塔则用来从金字塔底层图像中向上采样重建一个图像。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 从金字塔中上一级图像生成下一级图像，新图像面积会变为源图像的1/4</span></span><br><span class="line">void cvPyrDown(IplImage* src, IplImage* dst, IplFilter filter=CV_GAUSSIAN_5×5));</span><br><span class="line"><span class="comment">// 将现有的图像在每个维度都放大2倍</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvPyrUp</span><span class="params">(IplImage* src, IplImage* dst, IplFilter filter=CV_GAUSSIAN_5×<span class="number">5</span>)</span></span>;</span><br><span class="line"><span class="comment">// 利用金字塔实现图像分割</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvPySegmentation</span><span class="params">(IplImage* src, IplImage* dst, CvMemStorage* storage, CvSeg** comp, <span class="keyword">int</span> level, <span class="keyword">double</span> threshold1, <span class="keyword">double</span> threshold2)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>平均背景法的基本思路是计算每个像素的平均值和标准差作为它的背景模型。</p>
+<ul>
+<li><strong>累积均值、方差和协方差</strong></li>
+</ul>
+<p>在平均背景法中，一个常用的函数是累积函数cvAcc()。通过该操作，我们可以计算出整个场景或部分场景的基本统计特性（均值，方差和协方差）。<br><strong>均值漂移值</strong>：通过大量图像计算每个像素的均值的最简单的方法就是调用函数cvAcc()把他们加起来再除以图像总数来获得均值。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvAcc</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* <span class="built_in">image</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* sum,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* mask=<span class="literal">NULL</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br><span class="line"><span class="comment">// 直接计算均值漂移</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvRunningAvg</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* <span class="built_in">image</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* acc,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">double</span> alpha,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* mask=<span class="literal">NULL</span>;</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>计算方差</strong>：可以通过累积平方图像，快速计算单个像素的方差。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSquareAcc</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* <span class="built_in">image</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* sqsum,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* mask=<span class="literal">NULL</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>计算协方差</strong>：可以通过选择一个特定的时间间隔来观测图像是怎么变化的，然后用当前图像乘以和特定时间间隔相对应的图像。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 计算协方差</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvMultiplyAcc</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* image1,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* image2,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* acc,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* mask=<span class="literal">NULL</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
 
 
 
 <ul>
-<li><strong>阈值化</strong></li>
+<li><strong>高级背景模型</strong></li>
 </ul>
-<p>基本思想：给定一个数组和一个阈值，然后根据数组中的每个元素的值是低于还是高于阈值而进行一些处理。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">cvThreshold</span><span class="params">(CvArr* src, CvArr* dst, <span class="keyword">double</span> threshold, <span class="keyword">double</span> max_value, <span class="keyword">int</span> threshold_type)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>codebook由一些boxes组成，这些boxes包含很长时间不变的像素值。codebook方法能够解决像素剧烈变化的问题。<br><strong>结构</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// codebook结构体定义</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">code_book</span>&#123;</span></span><br><span class="line">    code_element **cb;</span><br><span class="line">    <span class="keyword">int</span> numEntries;</span><br><span class="line">    <span class="keyword">int</span> t;</span><br><span class="line">&#125; codebook;</span><br></pre></td></tr></table></figure>
 
 
 
-<p>对于有很强照明或反射梯度的图像，需要根据梯度进行阈值化时，往往需要自适应阈值技术。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 自适应阈值函数原型</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvAdaptiveThreshold</span><span class="params">(CvArr* src, CvArr* dst, <span class="keyword">double</span> max_val, <span class="keyword">int</span> adaptive_method=CV_ADAPTIVE_THRESH_MEAN_C, <span class="keyword">int</span> threshold_type=CV_THRESH_BINARY, <span class="keyword">int</span> block_size=<span class="number">3</span>, <span class="keyword">double</span> param1=<span class="number">5</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><strong>背景学习</strong><br>略<br><strong>学习有移动前景目标的背景</strong><br>略<br><strong>背景差分：寻找前景目标</strong><br>略<br><strong>使用codebook背景模型流程总结</strong>:<br>1.使用函数update_codebook()在几秒钟或几分钟时间内训练一个基本的背景模型。<br>2.调用函数clear_stale_entries()清除stale索引。<br>3.调整阈值minMod和maxMod对已知前景达到最好的分割。<br>4.保持一个更高级别的场景模型。<br>5.通过函数background_diff()使用训练好的模型将前景从背景中分割出来。<br>6.定期更新学习的背景像素。<br>7.在一个频率较慢的情况下，用函数clear_stale_entries()定期清理stale的codebook索引。</p>
+<ul>
+<li><strong>用于前景清除的连通部分</strong></li>
+</ul>
+<p>使用连通成分分析来清理原始分割图像是另一种寻找轮廓的方法。它能从原始噪声掩模图像创建出完整的掩模图像。连通域法是一个功能强大的在背景减去中去除噪声的技术。<br>下面直接给出一些处理连通区域的主要功能：<br>1.采用多边形拟合存在的轮廓部分，或凸包设置连通轮廓有多大<br>2.设置连通轮廓的大小以保证不被删除<br>3.设置返回的连通轮廓的最大数目<br>4.可选返回存活的连通轮廓的外接矩形<br>5.可选返回存活连通轮廓的中心</p>
+<h4 id="分水岭算法"><a href="#分水岭算法" class="headerlink" title="分水岭算法"></a>分水岭算法</h4><p>在许多实际情况下，我们要分割图像，但无法从背景图像中获得有用信息。分水岭算法在这方面往往是有效的。<br>更确切的说，分水岭算法允许用户来标记目标的某个部分为目标，或背景的某个部分为背景。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 分水岭算法函数</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvWatershed</span><span class="params">(<span class="keyword">const</span> CvArr* <span class="built_in">image</span>, CvArr* markers)</span></span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="用Inpainting修补图像"><a href="#用Inpainting修补图像" class="headerlink" title="用Inpainting修补图像"></a>用Inpainting修补图像</h4><p>图像常常被噪声腐蚀。这些噪声也许是镜头上的灰尘或水滴造成的，也可能是旧照片上的划痕，或者图像的部分已经被破坏了。Inpainting是修复这些损害的一种有效方法，它可以利用这些已经破坏区域的边缘的颜色和结构，繁殖和混合到损坏的图像里面。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvInpaint</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* src,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* mask,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* dst,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">double</span> inpaintRadius,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">int</span> flags</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="均值漂移分割"><a href="#均值漂移分割" class="headerlink" title="均值漂移分割"></a>均值漂移分割</h4><p>均值漂移能沿时间轴找到颜色空间的峰值分布。这里均值漂移分割能找到在空间上颜色分布的峰值。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 均值漂移分割</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvPyrMeanShiftFiltering</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* src,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* dst,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">double</span> spatialRadius,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">double</span> colorRadius,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">int</span> max_level=<span class="number">1</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvTermCriteria termcrit=cvTermCriteria(</span></span></span><br><span class="line"><span class="function"><span class="params">        CV_TERMCRIT_ITER | CV_TERMCRIT_EPS,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="number">5</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="number">1</span></span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>Learning OpenCV</category>
@@ -974,129 +853,263 @@
       </categories>
   </entry>
   <entry>
-    <title>第9章 图像局部与分割</title>
-    <url>/2018/09/22/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC9%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%B1%80%E9%83%A8%E4%B8%8E%E5%88%86%E5%89%B2/</url>
-    <content><![CDATA[<h4 id="局部与分割"><a href="#局部与分割" class="headerlink" title="局部与分割"></a>局部与分割</h4><p>简单来讲，分割就是如何从图像中将目标或部分目标分割出来。处了从图像中分割出前景目标之外，在很多情况下我们也希望将感兴趣的目标区域分割出来。<br>本章主要研究其他用于查找、填充和分离一幅图像中的目标以及部分目标物体的算法。</p>
+    <title>第5章 图像处理</title>
+    <url>/2018/09/10/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC5%E7%AB%A0%20%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/</url>
+    <content><![CDATA[<h4 id="平滑处理-模糊处理"><a href="#平滑处理-模糊处理" class="headerlink" title="平滑处理(模糊处理)"></a>平滑处理(模糊处理)</h4><p>平滑处理的用途有很多，最常见的是用来减少图像上的噪声或者失真。降低图像分辨率时，平滑处理很重要。目前OpenCV可提供五种不同的平滑操作，分别为简单模糊，简单无缩放变换的模糊，中值模糊，高斯模糊以及双边滤波。</p>
 <a id="more"></a>
 
-<h4 id="背景减除（背景差分）"><a href="#背景减除（背景差分）" class="headerlink" title="背景减除（背景差分）"></a>背景减除（背景差分）</h4><p>由于背景减除简单而且摄像机在很多情况下是固定的，在视频安全领域，背景减除也许是最基本的图像处理操作。所以，背景模型的建立至关重要。<br>一旦背景模型建立，将背景模型和当前的图像进行比较，然后减去这些已知的背景减除，则剩下的目标物大致就是所求的前景目标了。<br>当然，“背景”在不同的应用场合下是一个很难定义的问题，后续会介绍一些背景建模的方法。</p>
-<ul>
-<li><strong>背景减除的缺点</strong></li>
-</ul>
-<p>背景减除的一个缺点是建立在一个不常成立的假设：所有像素点是独立的。因为这种建模方法在计算像素变化时并没有考虑它相邻的像素。<br>其中一种解决方式是建立一个多元模型，它把基本的像素独立模型扩展为包含了相邻像素的亮度的基本场景。在这种情况下，我们用相邻像素的亮度来区别相邻像素值的相对明暗。但是这种模型消耗两倍的内存和更多的计算量。<br>但是在实际应用中，由于额外的开销，通常会避免使用复杂的模型。当像素独立假设不成立情况下，我们可以更有效地把精力投入到清除那些错误的检测结果中。本章将通过使用连通域，并且后续的方法严格限制在像素变化独立的假设基础上。</p>
-<ul>
-<li><strong>场景建模</strong></li>
-</ul>
-<p>通常，一个场景模型可能包含许多层次，从新的场景到旧的场景再到背景。</p>
-<ul>
-<li><strong>像素片段</strong></li>
-</ul>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 对任意直线上的像素进行采样</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cvInitLineIterator</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* <span class="built_in">image</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvPoint pt1,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvPoint pt2,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvLineIterator* line_iterator,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">int</span> connectivity=<span class="number">8</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">int</span> left_to_right=<span class="number">0</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>帧差</strong></li>
-</ul>
-<p>最简单的背景减除方法就是用一帧减去另一帧，然后将足够大的差别标为前景。这种方法往往能捕捉运动目标的边缘。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 计算帧差</span></span><br><span class="line">cvAbsDiff(frameTime1, frameTime2, frameForeground);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 平滑操作实现函数</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSmooth</span><span class="params">(<span class="keyword">const</span> CvArr* src, CvArr* dst, <span class="keyword">int</span> smoothtype=CV_GAUSSIAN, <span class="keyword">int</span> param1=<span class="number">3</span>, <span class="keyword">int</span> param2=<span class="number">0</span>, <span class="keyword">double</span> param3=<span class="number">0</span>, <span class="keyword">double</span> param4=<span class="number">0</span>)</span></span>;</span><br></pre></td></tr></table></figure>
 
 
 
-<p>由于像素值总会受到噪声和波动的影响，我们应该忽略很小的差异，标识其余的作为较大的差别：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">cvThreshold(frameForeground, frameForeground, <span class="number">15</span>, <span class="number">255</span>, CV_THRESH_BINARY);</span><br></pre></td></tr></table></figure>
+<h4 id="图像形态学"><a href="#图像形态学" class="headerlink" title="图像形态学"></a>图像形态学</h4><ul>
+<li><strong>膨胀和腐蚀</strong></li>
+</ul>
+<p>膨胀是指将一些图像（或图像中的一部分区域，称之为A）与核（称之为B）进行卷积。通常情况下，核是一个小的中间带有参考点的实心正方形或圆盘。核可以视为模板或掩码，膨胀是求局部最大值的操作。核B与图像卷积，即计算核B覆盖的区域的像素点最大值，并把这个最大值赋值给参考点指定的像素。这样就会使图像中的高亮区域逐渐增长。<br>腐蚀是膨胀的反操作。腐蚀操作要计算核区域像素的最小值。当核B与图像卷积时，计算被B覆盖区域的最小像素值，并把这个值放到参考点上。腐蚀能够消除细的凸起。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 膨胀操作</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvErode</span><span class="params">(IplImage* src, IplImage* dst, IplConvKernel* B=<span class="literal">NULL</span>, <span class="keyword">int</span> iterations=<span class="number">1</span>)</span></span>;</span><br><span class="line"><span class="comment">// 腐蚀操作</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvDilate</span><span class="params">(IplImage* src, IplImage* dst, IplConvKernel* B=<span class="literal">NULL</span>, <span class="keyword">int</span> iterations=<span class="number">1</span>)</span></span>;</span><br><span class="line"><span class="comment">// 自定义核B</span></span><br><span class="line"><span class="function">IplConvKernel* <span class="title">cvCreateStructuringElementEx</span><span class="params">(<span class="keyword">int</span> cols, <span class="keyword">int</span> rows, <span class="keyword">int</span> anchor_x, <span class="keyword">int</span> anchor_y, <span class="keyword">int</span> shape, <span class="keyword">int</span>* values=<span class="literal">NULL</span>)</span></span>;</span><br><span class="line"><span class="comment">// 释放自定义的核</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvReleaseStructuringElement</span><span class="params">(IplConvKernel** element)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>形态核与卷积核不同，不需要任何的数值填充核，它只是标明了计算最大值或最小值的范围。</p>
+<ul>
+<li><strong>更通用的形态学</strong></li>
+</ul>
+<p>基本的腐蚀和膨胀操作通常用于处理布尔图像和图像掩码。然而，在处理灰度或彩色图像时，往往需要一些额外的操作。<br><strong>开运算：</strong>先腐蚀再膨胀，通常可以用来统计二值图像中的区域数。开运算消除高于其邻近点的孤立点。<br><strong>闭运算：</strong>先膨胀再腐蚀，对于连通区域分析，通常先采用闭运算来消除纯粹由噪声引起的部分，然后用开运算来连接邻近的区域。闭运算消除低于其邻近点的孤立点。<br><strong>形态学梯度：</strong>对二值图像，可以将团块的边缘突出出来。能够描述图像亮度变化的剧烈程度。<br><strong>礼帽和黑帽：</strong>两者分别用于分离比邻近的点亮或暗的一些斑块。当试图孤立的部分相对于其邻近的部分有亮度变化时，就可以使用这些方法。礼帽操作是从A中减去了A的开运算。黑帽操作是A的闭运算减去A。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 通用的形态学操作函数</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvMorphologyEx</span><span class="params">(<span class="keyword">const</span> CvArr* src, CvArr* dst, CvArr* temp, IplConvKernel* element, <span class="keyword">int</span> operation, <span class="keyword">int</span> iterations=<span class="number">1</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>漫水填充法</strong></li>
+</ul>
+<p>漫水填充法经常被用来标记或分离图像的一部分以便对其进行进一步处理或分析；也可以用来从输入图像获取掩码区域，掩码会加速处理过程，或只处理掩码指定的像素点。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 填充算法函数原型</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvFloodFill</span><span class="params">(Iplimage* img, CvPoint seedPoint, CvScalar newVal, CvScalar loDiff=cvScalarAll(<span class="number">0</span>), CvScalar upDiff=cvScalarAll(<span class="number">0</span>), CvConnectedComp* comp=<span class="number">4</span>, CvArr* mask=<span class="literal">NULL</span>)</span></span>;</span><br></pre></td></tr></table></figure>
 
 
 
 <ul>
-<li><strong>平均背景法</strong></li>
+<li><strong>尺寸调整</strong></li>
 </ul>
-<p>平均背景法的基本思路是计算每个像素的平均值和标准差作为它的背景模型。</p>
-<ul>
-<li><strong>累积均值、方差和协方差</strong></li>
-</ul>
-<p>在平均背景法中，一个常用的函数是累积函数cvAcc()。通过该操作，我们可以计算出整个场景或部分场景的基本统计特性（均值，方差和协方差）。<br><strong>均值漂移值</strong>：通过大量图像计算每个像素的均值的最简单的方法就是调用函数cvAcc()把他们加起来再除以图像总数来获得均值。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvAcc</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* <span class="built_in">image</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* sum,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* mask=<span class="literal">NULL</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br><span class="line"><span class="comment">// 直接计算均值漂移</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvRunningAvg</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* <span class="built_in">image</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* acc,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">double</span> alpha,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* mask=<span class="literal">NULL</span>;</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span></span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>计算方差</strong>：可以通过累积平方图像，快速计算单个像素的方差。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSquareAcc</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* <span class="built_in">image</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* sqsum,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* mask=<span class="literal">NULL</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>计算协方差</strong>：可以通过选择一个特定的时间间隔来观测图像是怎么变化的，然后用当前图像乘以和特定时间间隔相对应的图像。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 计算协方差</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvMultiplyAcc</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* image1,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* image2,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* acc,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* mask=<span class="literal">NULL</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>cvResize()函数用于放大或缩小图像。该函数可以将源图像精确转换为目标图像的尺寸。如果源图像中设置了ROI，那么cvResize()将会对ROI区域调整尺寸，以匹配目标图像，同样，如果目标图像中已经设置ROI的值，那么cvResize()将会源图像进行尺寸调整并填充到目标图像的ROI中。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// cvRsize()函数原型</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvResize</span><span class="params">(<span class="keyword">const</span> CvArr* src, CvArr* dst, <span class="keyword">int</span> interpolation=CV_INTER_LINEAR)</span></span>;</span><br></pre></td></tr></table></figure>
 
 
 
 <ul>
-<li><strong>高级背景模型</strong></li>
+<li><strong>图像金字塔</strong></li>
 </ul>
-<p>codebook由一些boxes组成，这些boxes包含很长时间不变的像素值。codebook方法能够解决像素剧烈变化的问题。<br><strong>结构</strong></p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// codebook结构体定义</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">code_book</span>&#123;</span></span><br><span class="line">    code_element **cb;</span><br><span class="line">    <span class="keyword">int</span> numEntries;</span><br><span class="line">    <span class="keyword">int</span> t;</span><br><span class="line">&#125; codebook;</span><br></pre></td></tr></table></figure>
+<p>图像金字塔是一个图像集合，集合中所有的图像都源于同一个原始图像，而且是通过对原始图像连续降采样获得，直到达到某个终止条件才停止降采样。在应用中常有两种类型的图像金字塔：高斯金字塔和拉普拉斯金字塔。高斯金字塔用来向下降采样图像，而拉普拉斯金字塔则用来从金字塔底层图像中向上采样重建一个图像。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 从金字塔中上一级图像生成下一级图像，新图像面积会变为源图像的1/4</span></span><br><span class="line">void cvPyrDown(IplImage* src, IplImage* dst, IplFilter filter=CV_GAUSSIAN_5×5));</span><br><span class="line"><span class="comment">// 将现有的图像在每个维度都放大2倍</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvPyrUp</span><span class="params">(IplImage* src, IplImage* dst, IplFilter filter=CV_GAUSSIAN_5×<span class="number">5</span>)</span></span>;</span><br><span class="line"><span class="comment">// 利用金字塔实现图像分割</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvPySegmentation</span><span class="params">(IplImage* src, IplImage* dst, CvMemStorage* storage, CvSeg** comp, <span class="keyword">int</span> level, <span class="keyword">double</span> threshold1, <span class="keyword">double</span> threshold2)</span></span>;</span><br></pre></td></tr></table></figure>
 
 
 
-<p><strong>背景学习</strong><br>略<br><strong>学习有移动前景目标的背景</strong><br>略<br><strong>背景差分：寻找前景目标</strong><br>略<br><strong>使用codebook背景模型流程总结</strong>:<br>1.使用函数update_codebook()在几秒钟或几分钟时间内训练一个基本的背景模型。<br>2.调用函数clear_stale_entries()清除stale索引。<br>3.调整阈值minMod和maxMod对已知前景达到最好的分割。<br>4.保持一个更高级别的场景模型。<br>5.通过函数background_diff()使用训练好的模型将前景从背景中分割出来。<br>6.定期更新学习的背景像素。<br>7.在一个频率较慢的情况下，用函数clear_stale_entries()定期清理stale的codebook索引。</p>
 <ul>
-<li><strong>用于前景清除的连通部分</strong></li>
+<li><strong>阈值化</strong></li>
 </ul>
-<p>使用连通成分分析来清理原始分割图像是另一种寻找轮廓的方法。它能从原始噪声掩模图像创建出完整的掩模图像。连通域法是一个功能强大的在背景减去中去除噪声的技术。<br>下面直接给出一些处理连通区域的主要功能：<br>1.采用多边形拟合存在的轮廓部分，或凸包设置连通轮廓有多大<br>2.设置连通轮廓的大小以保证不被删除<br>3.设置返回的连通轮廓的最大数目<br>4.可选返回存活的连通轮廓的外接矩形<br>5.可选返回存活连通轮廓的中心</p>
-<h4 id="分水岭算法"><a href="#分水岭算法" class="headerlink" title="分水岭算法"></a>分水岭算法</h4><p>在许多实际情况下，我们要分割图像，但无法从背景图像中获得有用信息。分水岭算法在这方面往往是有效的。<br>更确切的说，分水岭算法允许用户来标记目标的某个部分为目标，或背景的某个部分为背景。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 分水岭算法函数</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvWatershed</span><span class="params">(<span class="keyword">const</span> CvArr* <span class="built_in">image</span>, CvArr* markers)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>基本思想：给定一个数组和一个阈值，然后根据数组中的每个元素的值是低于还是高于阈值而进行一些处理。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">cvThreshold</span><span class="params">(CvArr* src, CvArr* dst, <span class="keyword">double</span> threshold, <span class="keyword">double</span> max_value, <span class="keyword">int</span> threshold_type)</span></span>;</span><br></pre></td></tr></table></figure>
 
 
 
-<h4 id="用Inpainting修补图像"><a href="#用Inpainting修补图像" class="headerlink" title="用Inpainting修补图像"></a>用Inpainting修补图像</h4><p>图像常常被噪声腐蚀。这些噪声也许是镜头上的灰尘或水滴造成的，也可能是旧照片上的划痕，或者图像的部分已经被破坏了。Inpainting是修复这些损害的一种有效方法，它可以利用这些已经破坏区域的边缘的颜色和结构，繁殖和混合到损坏的图像里面。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvInpaint</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* src,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* mask,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* dst,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">double</span> inpaintRadius,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">int</span> flags</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="均值漂移分割"><a href="#均值漂移分割" class="headerlink" title="均值漂移分割"></a>均值漂移分割</h4><p>均值漂移能沿时间轴找到颜色空间的峰值分布。这里均值漂移分割能找到在空间上颜色分布的峰值。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 均值漂移分割</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvPyrMeanShiftFiltering</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> CvArr* src,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvArr* dst,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">double</span> spatialRadius,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">double</span> colorRadius,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">int</span> max_level=<span class="number">1</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    CvTermCriteria termcrit=cvTermCriteria(</span></span></span><br><span class="line"><span class="function"><span class="params">        CV_TERMCRIT_ITER | CV_TERMCRIT_EPS,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="number">5</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="number">1</span></span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>对于有很强照明或反射梯度的图像，需要根据梯度进行阈值化时，往往需要自适应阈值技术。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 自适应阈值函数原型</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvAdaptiveThreshold</span><span class="params">(CvArr* src, CvArr* dst, <span class="keyword">double</span> max_val, <span class="keyword">int</span> adaptive_method=CV_ADAPTIVE_THRESH_MEAN_C, <span class="keyword">int</span> threshold_type=CV_THRESH_BINARY, <span class="keyword">int</span> block_size=<span class="number">3</span>, <span class="keyword">double</span> param1=<span class="number">5</span>)</span></span>;</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>Learning OpenCV</category>
       </categories>
   </entry>
   <entry>
-    <title>learning-to-reinforcement-learning</title>
-    <url>/2020/11/29/learning-to-reinforcement-learning/</url>
-    <content><![CDATA[<p>强化学习记录，学习资料为ZhouBolei大神的<a href="https://github.com/zhoubolei/introRL" target="_blank" rel="noopener">introRL</a>。</p>
-<h2 id="Foundation"><a href="#Foundation" class="headerlink" title="Foundation"></a>Foundation</h2><ul>
-<li><input checked="" disabled="" type="checkbox"> Lecture1: Overview (课程概括与RL基础)<ul>
-<li><strong>Keywords</strong>: Agent, Environment, action, reward</li>
-<li>Supervised learning: Annotated images, data follows i.i.d distribution（条件独立同分布）</li>
-<li>Reinforcement learning: Data are not i.i.d, a correlated time series data(数据不符合i.i.d条件，前后有时序关系); No instant feedback or label for correct action(不能马上得到反馈)</li>
-<li>Features of RL: Trial-and-error exploration; Delayed reward; Time matters(sequential data, non i.i.d data); Agent’s actions changes the environment.</li>
-<li><strong>Rewards</strong>: A scalar feedback signal; Indicate how well agent is doing at step t; RL is based on the maximization of rewards.</li>
-<li>Sequential Decision Making: Trade-off between immediate reward and long-term reward.</li>
-<li>An RL agent components: Policy, Value function, Model.</li>
-<li>Agents type: Value-based agent, Policy-based agent, Actor-Critic agent.</li>
-<li>Exploration and Exploitation.</li>
-</ul>
-</li>
-</ul>
-<h2 id="Advanced-Topics"><a href="#Advanced-Topics" class="headerlink" title="Advanced Topics"></a>Advanced Topics</h2>]]></content>
+    <title>第4章 细说HighGUI</title>
+    <url>/2018/09/06/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC4%E7%AB%A0%20%E7%BB%86%E8%AF%B4HighGUI/</url>
+    <content><![CDATA[<h4 id="创建窗口"><a href="#创建窗口" class="headerlink" title="创建窗口"></a>创建窗口</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cvNameWindow</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">int</span> flags=CV_WINDOW_AUTOSIZE)</span></span>; <span class="comment">// 创建窗口</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span>* <span class="title">cvGetWindowHandle</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* name)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">const</span> <span class="keyword">char</span>* <span class="title">cvGetWindowName</span><span class="params">(<span class="keyword">void</span>* window_handle)</span></span>; <span class="comment">// 获取窗口名称</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvResizeWindow</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">int</span> <span class="built_in">width</span>, <span class="keyword">int</span> <span class="built_in">height</span>)</span></span>; <span class="comment">// 调整窗口大小</span></span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+
+<h4 id="载入图像"><a href="#载入图像" class="headerlink" title="载入图像"></a>载入图像</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function">IplImage* <span class="title">cvLoadImage</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* filename, <span class="keyword">int</span> iscolor=CV_LOAD_IMAGE_COLOR)</span></span>; <span class="comment">// 从磁盘载入图像</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cvSaveImage</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* filename, <span class="keyword">const</span> CvArr* <span class="built_in">image</span>)</span></span>; <span class="comment">// 保存图像</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="显示图像"><a href="#显示图像" class="headerlink" title="显示图像"></a>显示图像</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvShowImage</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">const</span> CvArr* <span class="built_in">image</span>)</span></span>; <span class="comment">// 显示图像</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvMoveWindow</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">int</span> x, <span class="keyword">int</span> y)</span></span>; <span class="comment">// 将窗口移动到其左上角为x, y的位置</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvDestroyAllWindows</span><span class="params">(<span class="keyword">void</span>)</span></span>; <span class="comment">// 释放所有窗口</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cvStartWindowThread</span><span class="params">(<span class="keyword">void</span>)</span></span>; <span class="comment">// 创建一个线程用来自动更新窗口以及处理其他窗口触发事件</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="鼠标事件"><a href="#鼠标事件" class="headerlink" title="鼠标事件"></a>鼠标事件</h4><p>鼠标事件响应采用回调函数的方式来处理。即，为了可以响应鼠标点击事件，首先必须创建一个回调函数，使鼠标点击事件发生时，OpenCV可以调用这个函数。创建这个函数之后，需要在OpenCV中注册这个函数，以便特定窗口被触发鼠标事件以后，OpenCV可以正确调用这个函数。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CvMouseCallback</span><span class="params">(<span class="keyword">int</span> event, <span class="keyword">int</span> x, <span class="keyword">int</span> y, <span class="keyword">int</span> flags, <span class="keyword">void</span>* param)</span></span>; <span class="comment">// 回调函数的定义</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSetMouseCallback</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* window_name, CvMouseCallback on_mouse, <span class="keyword">void</span>* param=<span class="literal">NULL</span>)</span></span>; <span class="comment">// 注册回调函数</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="Sliders-Trackbars-Switches"><a href="#Sliders-Trackbars-Switches" class="headerlink" title="Sliders, Trackbars, Switches"></a>Sliders, Trackbars, Switches</h4><p>滑动条的实现</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 创建滑动条函数</span><br><span class="line">int cvCreateTrackbar(const char* trackbar_name, const char* window_name, int* value, int count, CvTrackbarCallback on_change);</span><br><span class="line">&#x2F;&#x2F; 读取滑动条的value值</span><br><span class="line">int cvGetTrackbarPos(const char* trackbar_name, const char* window_name);</span><br><span class="line">&#x2F;&#x2F; 设置滑动条的value值</span><br><span class="line">void cvSetTrackbarPos(const char* trackbar_name, const char* window_name, int pos);</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Learning OpenCV</category>
+      </categories>
   </entry>
   <entry>
-    <title>learning-to-bert</title>
-    <url>/2020/12/11/learning-to-bert/</url>
-    <content><![CDATA[<p>在一些视频理解任务中，比如分类，VQA等，除了画面信息之外通常还会引入一些音频、文本等信息。为了使视频任务中引入标题信息（无论是否有帮助，但总要尝试），决定利用BERT来提取标题向量。</p>
-<p>看了google官方的<a href="https://github.com/google-research/bert" target="_blank" rel="noopener">bert</a>以及huggingface所实现的pytorch版本的<a href="https://github.com/huggingface/transformers" target="_blank" rel="noopener">transformers</a>，对于一个NLP小白来说可能是由于bert的变种太多实在太过眼花缭乱，所以本文的目标就是得到一个可提取中文文本特征向量的接口。</p>
-<p>对我而言，接触一个任务时习惯性的会考虑三个问题：数据、模型以及损失函数。这篇Blog也根据该思路来对BERT做一个学习。</p>
-<h2 id="BERT的输入是什么？"><a href="#BERT的输入是什么？" class="headerlink" title="BERT的输入是什么？"></a>BERT的输入是什么？</h2><p>该部分直接参考官方的<a href="https://github.com/google-research/bert/blob/master/tokenization.py" target="_blank" rel="noopener"><code>tokenization.py</code></a>来说明是如何对输入进行预处理的，其它框架虽然略有不同，但也都是由此演变而来。<code>tokenization.py</code>中包含了两个分词器：<code>BasicTokenizer</code>和<code>WordpieceTokenizer</code>，下面我们根据例子来说明是如何处理的。</p>
-<p>给定一段文本：<code>text=“新垣结衣（Aragaki Yui），1988年6月11日出生于日本冲绳县那霸市。日本女演员、歌手、模特\r\n”。</code></p>
-<h3 id="BasicTokenizer"><a href="#BasicTokenizer" class="headerlink" title="BasicTokenizer"></a>BasicTokenizer</h3><p><code>BasicTokenizer</code>是一个初步分词器。对于一个输入文本，处理流程为：转unicode-&gt;去除特殊字符-&gt;处理中文-&gt;按空格分词-&gt;去除多余字符和标点分词-&gt;再次按空格分词。</p>
-<h4 id="转unicode编码"><a href="#转unicode编码" class="headerlink" title="转unicode编码"></a>转unicode编码</h4><p>具体可以看<code>convert_to_unicode(text)</code>函数，大概流程是：对python3而言，输入为<code>str</code>类型时直接返回，为<code>bytes</code>型时转为<code>unicode</code>类型；对python2而言，输入为<code>str</code>类型时则转为<code>unicode</code>类型，为<code>unicode</code>类型时则直接返回。</p>
-<p>经过转码处理之后，text和原来相同：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>text=convert_to_unicode(text)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>text</span><br><span class="line"><span class="string">'新垣结衣（Aragaki Yui），1988年6月11日出生于日本冲绳县那霸市。日本女演员、歌手、模特\r\n'</span></span><br></pre></td></tr></table></figure>
+    <title>第3章 初探OpenCV</title>
+    <url>/2018/09/05/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC3%E7%AB%A0%20%E5%88%9D%E6%8E%A2OpenCV/</url>
+    <content><![CDATA[<h4 id="OpenCV的基本数据类型"><a href="#OpenCV的基本数据类型" class="headerlink" title="OpenCV的基本数据类型"></a>OpenCV的基本数据类型</h4><a id="more"></a>
 
-<h4 id="清除无效字符及空白字符"><a href="#清除无效字符及空白字符" class="headerlink" title="清除无效字符及空白字符"></a>清除无效字符及空白字符</h4><p>该部分对应于<code>_clean_text(self, text)</code>函数，主要用于去除无效字符和多余空格。</p>
-<p>源码中的<code>ord()</code>函数是以一个字符（长度为1的字符串）作为参数，返回对应的 ASCII 数值，或者 Unicode 数值。</p>
-<p>整体流程如下：</p>
 <ul>
-<li>码位=0时</li>
+<li><strong>基本数据类型</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="left">结构</th>
+<th align="left">成员</th>
+<th align="left">意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">CvPoint</td>
+<td align="left">int x, y</td>
+<td align="left">图像中的点</td>
+</tr>
+<tr>
+<td align="left">CvPoint2D32f</td>
+<td align="left">float x, y</td>
+<td align="left">二维空间中的点</td>
+</tr>
+<tr>
+<td align="left">CvPoint3D32f</td>
+<td align="left">float x, y， z</td>
+<td align="left">三维空间中的点</td>
+</tr>
+<tr>
+<td align="left">CvSize</td>
+<td align="left">int width, height</td>
+<td align="left">图像的尺寸</td>
+</tr>
+<tr>
+<td align="left">CvRect</td>
+<td align="left">int x, y, width, height</td>
+<td align="left">图像的部分区域</td>
+</tr>
+<tr>
+<td align="left">CvScalar</td>
+<td align="left">double val[4]</td>
+<td align="left">RGBA值</td>
+</tr>
+</tbody></table>
+<h4 id="CvMat矩阵结构"><a href="#CvMat矩阵结构" class="headerlink" title="CvMat矩阵结构"></a>CvMat矩阵结构</h4><p>在OpenCV中没有向量（vector）结构，需要时可以用列矩阵代替。<br>矩阵由宽度（width），高度（height），类型（type），行数据长度（step）和一个指向数据的指针构成。</p>
+<ul>
+<li><strong>矩阵头的定义</strong>：</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">typeded <span class="class"><span class="keyword">struct</span> <span class="title">CvMat</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> type;</span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">step</span>;</span><br><span class="line">    <span class="keyword">int</span>* refcount;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        unchar* ptr;</span><br><span class="line">        short* s;</span><br><span class="line">        <span class="keyword">int</span>* i;</span><br><span class="line">        <span class="keyword">float</span>* fl;</span><br><span class="line">        <span class="keyword">double</span>* db;</span><br><span class="line">    &#125;data;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        <span class="keyword">int</span> rows;</span><br><span class="line">        <span class="keyword">int</span> <span class="built_in">height</span>;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        <span class="keyword">int</span> cols;</span><br><span class="line">        <span class="keyword">int</span> <span class="built_in">width</span>;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125; CvMat;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>矩阵的创建与释放</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function">CvMat* <span class="title">cvCreateMat</span><span class="params">(<span class="keyword">int</span> rows, <span class="keyword">int</span> cols, <span class="keyword">int</span> type)</span></span>; </span><br><span class="line"><span class="function">CvMat* <span class="title">cvCreateMatHeader</span><span class="params">(<span class="keyword">int</span> rows, <span class="keyword">int</span> cols, <span class="keyword">int</span> type)</span></span>; <span class="comment">//只创建CvMat结构，不分配存储空间</span></span><br><span class="line"><span class="function">CvMat* <span class="title">cvInitMatHeader</span><span class="params">(CvMat* mat, <span class="keyword">int</span> rows, <span class="keyword">int</span> cols, <span class="keyword">int</span> type, <span class="keyword">void</span>* data=<span class="literal">NULL</span>, <span class="keyword">int</span> <span class="built_in">step</span>=CV_AUTOSTEP)</span></span>; <span class="comment">//在已存在的结构上初始化CvMat矩阵头</span></span><br><span class="line"><span class="function">CvMat* <span class="title">cvCloneMat</span><span class="params">(<span class="keyword">const</span> CvMat* mat)</span></span>; <span class="comment">// 克隆</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvReleaseMat</span><span class="params">(CvMat** mat)</span></span>; <span class="comment">// 释放</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>矩阵数据的存取</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">float</span> element_3_2 = CV_MAT_ELEM(*mat, <span class="keyword">float</span>, <span class="number">3</span>, <span class="number">2</span>);</span><br><span class="line"><span class="function">uchar* <span class="title">cvPtr2D</span><span class="params">(<span class="keyword">const</span> CvArr* arr, <span class="keyword">int</span> idx0, <span class="keyword">int</span> idx1, <span class="keyword">int</span>* type=<span class="literal">NULL</span>)</span></span>; <span class="comment">// 返回指向所需元素的指针</span></span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">cvGetReal2D</span><span class="params">(<span class="keyword">const</span> CvArr* arr, <span class="keyword">int</span> indx0, <span class="keyword">int</span> idx1)</span></span>; <span class="comment">// 返回矩阵元素的实际值</span></span><br><span class="line"><span class="function">CvScalar <span class="title">cvGet2D</span><span class="params">(<span class="keyword">const</span> CvArr* arr, <span class="keyword">int</span> idx0, <span class="keyword">int</span> idx1)</span></span>; <span class="comment">// 返回CvScalar类型</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSetReal2D</span><span class="params">(CvArr* arr, <span class="keyword">int</span> idx0, <span class="keyword">int</span> idx1, <span class="keyword">double</span> value)</span></span>; <span class="comment">// 设置值</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSet2D</span><span class="params">(CvArr* arr, <span class="keyword">int</span> idx0, <span class="keyword">int</span> idx1, CvScalar value)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="IplImage数据结构"><a href="#IplImage数据结构" class="headerlink" title="IplImage数据结构"></a>IplImage数据结构</h4><ul>
+<li><strong>IplImage结构</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IplImage</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> nSize;</span><br><span class="line">    <span class="keyword">int</span> ID;</span><br><span class="line">    <span class="keyword">int</span> nChannels;</span><br><span class="line">    <span class="keyword">int</span> alphaChannel;</span><br><span class="line">    <span class="keyword">int</span> depth;</span><br><span class="line">    <span class="keyword">char</span> colorModel[<span class="number">4</span>];</span><br><span class="line">    <span class="keyword">char</span> dataOrder;</span><br><span class="line">    <span class="keyword">int</span> origin;</span><br><span class="line">    <span class="keyword">int</span> align;</span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">width</span>;</span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">height</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">IplROI</span> *<span class="title">roi</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">IplImage</span> *<span class="title">maskROI</span>;</span></span><br><span class="line">    <span class="keyword">void</span> *imageId;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">IplTileInfo</span> *<span class="title">tileInfo</span>;</span></span><br><span class="line">    <span class="keyword">int</span> imageSize;</span><br><span class="line">    <span class="keyword">char</span> *imageData;</span><br><span class="line">    <span class="keyword">int</span> widthStep;</span><br><span class="line">    <span class="keyword">int</span> BorderMode[<span class="number">4</span>];</span><br><span class="line">    <span class="keyword">int</span> BorderConst[<span class="number">4</span>];</span><br><span class="line">    <span class="keyword">char</span> *imageDataOrigin;</span><br><span class="line">&#125; IplImage;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>ROI的设置与重置</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvSetImageROI</span><span class="params">(IplImage* <span class="built_in">image</span>, CvRect <span class="built_in">rect</span>)</span></span>; <span class="comment">// 设置ROI</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvResetImageROI</span><span class="params">(IplImage* <span class="built_in">image</span>)</span></span>; <span class="comment">// 取消ROI</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="画图"><a href="#画图" class="headerlink" title="画图"></a>画图</h4><ul>
+<li><strong>直线</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvLine</span><span class="params">(CvArr* <span class="built_in">array</span>, CvPoint pt1, CvPoint pt2, CvScalar color, <span class="keyword">int</span> thickness=<span class="number">1</span>, <span class="keyword">int</span> connectivity=<span class="number">8</span>)</span></span>; <span class="comment">// 直线</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvRectangle</span><span class="params">(CvArr* <span class="built_in">array</span>, CvPoint pt1, CvPoint pt2, CvScalar color, <span class="keyword">int</span> thickness=<span class="number">1</span>)</span></span>; <span class="comment">// 矩形</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>圆形和椭圆</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvCircle</span><span class="params">(CvArr* <span class="built_in">array</span>, CvPoint center, <span class="keyword">int</span> radius, CvScalar color, <span class="keyword">int</span> thickness=<span class="number">1</span>, <span class="keyword">int</span> connectivity=<span class="number">8</span>)</span></span>; <span class="comment">// 圆形</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvEllipse</span><span class="params">(CvArr* img, CvPoint center, CvSize axes, <span class="keyword">double</span> angle, <span class="keyword">double</span> start_angle, <span class="keyword">double</span> end_angle, CvScalar color, <span class="keyword">int</span> thickness=<span class="number">1</span>, <span class="keyword">int</span> line_type=<span class="number">8</span>)</span></span>; <span class="comment">// 椭圆</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>多边形</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvFillPoly</span><span class="params">(CvArr* img, CvPoint** pts, <span class="keyword">int</span>* npts, <span class="keyword">int</span> contours, CvScalar color, <span class="keyword">int</span> line_type=<span class="number">8</span>)</span></span>; <span class="comment">// 多边形</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>字体和文字</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cvPutText</span><span class="params">(CvArr* img, <span class="keyword">const</span> <span class="keyword">char</span>* <span class="built_in">text</span>, CvPoint origin, <span class="keyword">const</span> CvFont* font, CvScalr color)</span></span>; <span class="comment">// 图像上输出文本</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="数据存储"><a href="#数据存储" class="headerlink" title="数据存储"></a>数据存储</h4><ul>
+<li><strong>矩阵的存储和读取</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">CvMat A = cvMat(<span class="number">5</span>, <span class="number">5</span>, CV_32F, the_matrix_data); <span class="comment">// 创建矩阵</span></span><br><span class="line">cvSave(<span class="string">"my_matrix.xml"</span>, &amp;A); <span class="comment">// 存储矩阵</span></span><br><span class="line">CvMat* A1 = (CvMat*) cvLoad(<span class="string">"my_matrix.xml"</span>); <span class="comment">// 读取矩阵</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>xml格式文件的新建，存储与读取</strong></li>
 </ul>
 ]]></content>
+      <categories>
+        <category>Learning OpenCV</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>第2章 OpenCV入门</title>
+    <url>/2018/09/03/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC2%E7%AB%A0%20OpenCV%E5%85%A5%E9%97%A8/</url>
+    <content><![CDATA[<h4 id="OpenCV的结构和内容"><a href="#OpenCV的结构和内容" class="headerlink" title="OpenCV的结构和内容"></a>OpenCV的结构和内容</h4><p>OpenCV主体分为五个模块：</p>
+<ul>
+<li>CV模块：包含基本的图像处理函数和高级的计算机视觉算法。</li>
+<li>ML库：机器学习库，包含一些基于统计的分类和聚类工具。</li>
+<li>HighGUI：包含图像和视频输入/输出的函数。</li>
+<li>CXCore：包含OpenCV的一些基本数据结构和相关函数。</li>
+<li>CvAux模块：存放一些即将被淘汰的算法和函数。<a id="more"></a>
+
+</li>
+</ul>
+<h4 id="显示图像"><a href="#显示图像" class="headerlink" title="显示图像"></a>显示图像</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"opencv/cv.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"opencv/highgui.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    IplImage *img = cvLoadImage(<span class="string">"./Lena.jpg"</span>);</span><br><span class="line">    cvNamedWindow(<span class="string">"Example1"</span>, CV_WINDOW_AUTOSIZE);</span><br><span class="line">    cvShowImage(<span class="string">"Example1"</span>, img);</span><br><span class="line">    cvWaitKey(<span class="number">0</span>);</span><br><span class="line">    cvReleaseImage(&amp;img);</span><br><span class="line">    cvDestroyWindow(<span class="string">"Example1"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>cvLoadImage()</code>函数可读取绝大多数格式类型的图像文件，包括BMP,DIB,JPEG,JPE,PNG,PBM,TIFF等。该函数执行后返回一个指针，此指针指向一块为描述该图像文件的数据结构（IplImage）而分配的内存块。</p>
+<h4 id="简单的变换"><a href="#简单的变换" class="headerlink" title="简单的变换"></a>简单的变换</h4><p>实现变换的方式：新建一个IplImage结构，然后对原图执行某种操作，将结构写入到新建的结构中，返回。<br>新建IplImage的方式：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">IplImage* out = cvCreateImage(</span><br><span class="line">    cvSize(in-&gt;<span class="built_in">width</span> / <span class="number">2</span>, in-&gt;<span class="built_in">height</span> / <span class="number">2</span>),</span><br><span class="line">    in-&gt;depth,</span><br><span class="line">    in-&gt;nChannels);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>分配新的图像空间时是从旧的图像中读取所需的信息。在OpenCV中，所有的重要的数据都是以数据体的形式实现，并且以数据体指针的形式传递。</p>
+]]></content>
+      <categories>
+        <category>Learning OpenCV</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>学习OpenCV环境准备</title>
+    <url>/2018/09/01/%E5%AD%A6%E4%B9%A0OpenCV/%E5%AD%A6%E4%B9%A0OpenCV%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/</url>
+    <content><![CDATA[<h4 id="OpenCV配置"><a href="#OpenCV配置" class="headerlink" title="OpenCV配置"></a>OpenCV配置</h4><p>由于我的Ubuntu 16.04不知道什么时候已经安装了OpenCV，所以这里省略了安装过程。注意的是我的OpenCV应该不是按照官网的编译方式安装的，应该是之前有一些环境配置时所需依赖时以其他的方式安装的。</p>
+<a id="more"></a>
+
+<ul>
+<li>使用vs code编译OpenCV程序</li>
+</ul>
+<p>在vs code编译器中，用简单的读取图片的代码测试，运行时出现下面错误：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/tmp/cc9zYXpi.o: In function 'main':</span><br><span class="line">/home/xxx/c++/main.cpp:5: undefined reference to 'cvLoadImage'</span><br><span class="line">/home/xxx/c++/main.cpp:6: undefined reference to 'cvNamedWindow'</span><br><span class="line">/home/xxx/c++/main.cpp:7: undefined reference to 'cvShowImage'</span><br><span class="line">/home/xxx/c++/main.cpp:8: undefined reference to 'cvWaitKey'</span><br><span class="line">/home/xxx/c++/main.cpp:9: undefined reference to 'cvReleaseImage'</span><br><span class="line">/home/xxx/c++/main.cpp:10: undefined reference to 'cvDestroyWindow'</span><br><span class="line">collect2: error: ld returned 1 exit status</span><br><span class="line">The terminal process terminated with exit code: 1</span><br></pre></td></tr></table></figure>
+
+
+
+<p>我对于该错误出现的推测是，因为测试程序是在之前配置运行c++的环境下运行的，所以设置的默认编译指令也是用的之前的，所以对于当前的并不适用，应该需要对于OpenCV所需的指令重新设定默认编译指令。</p>
+<ul>
+<li>一种在终端编译的方式</li>
+</ul>
+<p>在vs code中由于设置的问题出现报错，那有一种通用的方式是在终端输入命令行完成编译。命令行如下：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">g++ main.cpp -o main_out `pkg-config --cflags --libs opencv`</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：这里是`而不是‘，否则无法编译成功。</p>
+<p><code>pkg-config</code>可用于列举某个库的相关信息，比如此库的路径/相关头文件等。比如：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">~$ pkg-config --cflags opencv</span><br><span class="line">-I/usr/include/opencv</span><br><span class="line"></span><br><span class="line">~$ pkg-config --libs opencv</span><br><span class="line">/usr/lib/x86_64-linux-gnu/libopencv_calib3d.so -lopencv_calib3d /usr/lib/x86_64-linux-gnu/libopencv_contrib.so -lopencv_contrib /usr/lib/x86_64-linux-gnu/libopencv_core.so -lopencv_core /usr/lib/x86_64-linux-gnu/libopencv_features2d.so -lopencv_features2d /usr/lib/x86_64-linux-gnu/libopencv_flann.so -lopencv_flann /usr/lib/x86_64-linux-gnu/libopencv_gpu.so -lopencv_gpu /usr/lib/x86_64-linux-gnu/libopencv_highgui.so -lopencv_highgui /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so -lopencv_imgproc /usr/lib/x86_64-linux-gnu/libopencv_legacy.so -lopencv_legacy /usr/lib/x86_64-linux-gnu/libopencv_ml.so -lopencv_ml /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so -lopencv_objdetect /usr/lib/x86_64-linux-gnu/libopencv_ocl.so -lopencv_ocl /usr/lib/x86_64-linux-gnu/libopencv_photo.so -lopencv_photo /usr/lib/x86_64-linux-gnu/libopencv_stitching.so -lopencv_stitching /usr/lib/x86_64-linux-gnu/libopencv_superres.so -lopencv_superres /usr/lib/x86_64-linux-gnu/libopencv_ts.so -lopencv_ts /usr/lib/x86_64-linux-gnu/libopencv_video.so -lopencv_video /usr/lib/x86_64-linux-gnu/libopencv_videostab.so -lopencv_videostab</span><br></pre></td></tr></table></figure>
+
+
+
+<p>通过这种方式就可以开始OpenCV的学习了，但是这样会很不方便吧，所以还是要在vs code中配置一套属于OpenCV的环境。</p>
+<ul>
+<li>配置vs code编译OpenCV程序的环境</li>
+</ul>
+<p>由上面的过程可以知道，究其原因就是之前的vs code设置的默认指令不匹配造成。同时也知道正确的指令应该是<code>g++ main.cpp -o main_test.out &#39;pkg-config --cflags --libs opencv&#39;</code>。<br>配置vs code的环境大同小异，这里简述一下：</p>
+<blockquote>
+<p>1.新建文件夹LearningOpenCV<br>2.在根目录下新建.vscode文件夹，并在该文件夹下新建launch.json,settings.json,tasks.json三个设置文件<br>3.其中launch.json,settings.json的设置可以参考其他，重要的是tasks.json中args参数的设置，这个是默认指令的设置。我的tasks.json设置如下：</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="comment">// See https://go.microsoft.com/fwlink/?LinkId=733558</span></span><br><span class="line">    <span class="comment">// for the documentation about the tasks.json format</span></span><br><span class="line">    <span class="string">"version"</span>: <span class="string">"2.0.0"</span>,</span><br><span class="line">    <span class="string">"tasks"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">"label"</span>: <span class="string">"build"</span>,</span><br><span class="line">            <span class="string">"type"</span>: <span class="string">"shell"</span>,</span><br><span class="line">            <span class="string">"command"</span>: <span class="string">"g++"</span>,</span><br><span class="line">            <span class="string">"args"</span>:[<span class="string">"-g"</span>,<span class="string">"$&#123;workspaceRoot&#125;/main.cpp"</span>,<span class="string">"-o"</span>,<span class="string">"main_test.out"</span>,<span class="string">"`pkg-config"</span>,<span class="string">"--cflags"</span>,<span class="string">"--libs"</span>,<span class="string">"opencv`"</span>],</span><br><span class="line">            <span class="string">"presentation"</span>: &#123;</span><br><span class="line">                <span class="string">"reveal"</span>: <span class="string">"always"</span>,</span><br><span class="line">                <span class="string">"panel"</span>: <span class="string">"new"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">"problemMatcher"</span>:</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="string">"owner"</span>: <span class="string">"cpp"</span>,</span><br><span class="line">                <span class="string">"fileLocation"</span>:[<span class="string">"relative"</span>, <span class="string">"$&#123;workspaceRoot&#125;"</span>],</span><br><span class="line">                <span class="string">"pattern"</span>:[</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="string">"regexp"</span>: <span class="string">"^([^\\\\s].*)\\\\((\\\\d+,\\\\d+)\\\\):\\\\s*(.*)$"</span>,</span><br><span class="line">                        <span class="string">"file"</span>: <span class="number">1</span>,</span><br><span class="line">                        <span class="string">"line"</span>: <span class="number">2</span>,</span><br><span class="line">                        <span class="string">"column"</span>: <span class="number">3</span>,</span><br><span class="line">                        <span class="string">"severity"</span>: <span class="number">4</span>,</span><br><span class="line">                        <span class="string">"location"</span>: <span class="number">2</span>,</span><br><span class="line">                        <span class="string">"message"</span>: <span class="number">5</span></span><br><span class="line">                    &#125;</span><br><span class="line">                ]</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到tasks.json中的args参数正是我们上面说到的终端指令。<br><strong>注意</strong>：由于args的参数设置时不能包含空格，所以<code>pkg-config --cflags --libs opencv</code>需要不同的引号分开，同时`注意不要搞错或者忘记。<br>到此为止，vs code的OpenCV编译环境已经完成了，接下来就在Ubuntu下面开始OpenCV的学习吧！</p>
+]]></content>
+      <categories>
+        <category>Learning OpenCV</category>
+      </categories>
   </entry>
 </search>

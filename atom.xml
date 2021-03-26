@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://tramac.github.io/"/>
-  <updated>2020-12-13T01:46:02.000Z</updated>
+  <updated>2021-03-26T09:25:05.886Z</updated>
   <id>http://tramac.github.io/</id>
   
   <author>
@@ -15,6 +15,28 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>隐秘的角落</title>
+    <link href="http://tramac.github.io/2021/03/26/hidden-corner/"/>
+    <id>http://tramac.github.io/2021/03/26/hidden-corner/</id>
+    <published>2021-03-26T09:05:39.000Z</published>
+    <updated>2021-03-26T09:25:05.886Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="为什么会有这个东西"><a href="#为什么会有这个东西" class="headerlink" title="为什么会有这个东西?"></a>为什么会有这个东西?</h3><p>工作之后，很少有时间去维护github上项目了，但是又不忍心忽略掉小伙伴的issues，为了能够更快的解决小伙伴的问题，所以决定将我的微信放在这里！如果遇到以下问题就加我好友吧：</p><ul><li>使用项目期间发现有解决不掉的bug</li><li>觉得项目有缺陷，你有一些改进建议</li><li>你的科研&amp;工作期间有一些问题想和我交流一下</li><li>或者你有一些奇奇怪怪的想法</li></ul><p><img src="./images/Wechat.jpg" alt="WeChat"></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h3 id=&quot;为什么会有这个东西&quot;&gt;&lt;a href=&quot;#为什么会有这个东西&quot; class=&quot;headerlink&quot; title=&quot;为什么会有这个东西?&quot;&gt;&lt;/a&gt;为什么会有这个东西?&lt;/h3&gt;&lt;p&gt;工作之后，很少有时间去维护github上项目了，但是又不忍心忽略掉小伙伴的iss
+      
+    
+    </summary>
+    
+    
+    
+  </entry>
   
   <entry>
     <title>learning-to-bert</title>
@@ -480,33 +502,6 @@
     <summary type="html">
     
       &lt;h4 id=&quot;OpenCV的基本数据类型&quot;&gt;&lt;a href=&quot;#OpenCV的基本数据类型&quot; class=&quot;headerlink&quot; title=&quot;OpenCV的基本数据类型&quot;&gt;&lt;/a&gt;OpenCV的基本数据类型&lt;/h4&gt;
-    
-    </summary>
-    
-    
-      <category term="Learning OpenCV" scheme="http://tramac.github.io/categories/Learning-OpenCV/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>第2章 OpenCV入门</title>
-    <link href="http://tramac.github.io/2018/09/03/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC2%E7%AB%A0%20OpenCV%E5%85%A5%E9%97%A8/"/>
-    <id>http://tramac.github.io/2018/09/03/%E5%AD%A6%E4%B9%A0OpenCV/%E7%AC%AC2%E7%AB%A0%20OpenCV%E5%85%A5%E9%97%A8/</id>
-    <published>2018-09-03T06:55:02.000Z</published>
-    <updated>2020-07-18T16:06:54.784Z</updated>
-    
-    <content type="html"><![CDATA[<h4 id="OpenCV的结构和内容"><a href="#OpenCV的结构和内容" class="headerlink" title="OpenCV的结构和内容"></a>OpenCV的结构和内容</h4><p>OpenCV主体分为五个模块：</p><ul><li>CV模块：包含基本的图像处理函数和高级的计算机视觉算法。</li><li>ML库：机器学习库，包含一些基于统计的分类和聚类工具。</li><li>HighGUI：包含图像和视频输入/输出的函数。</li><li>CXCore：包含OpenCV的一些基本数据结构和相关函数。</li><li>CvAux模块：存放一些即将被淘汰的算法和函数。<a id="more"></a></li></ul><h4 id="显示图像"><a href="#显示图像" class="headerlink" title="显示图像"></a>显示图像</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"opencv/cv.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"opencv/highgui.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    IplImage *img = cvLoadImage(<span class="string">"./Lena.jpg"</span>);</span><br><span class="line">    cvNamedWindow(<span class="string">"Example1"</span>, CV_WINDOW_AUTOSIZE);</span><br><span class="line">    cvShowImage(<span class="string">"Example1"</span>, img);</span><br><span class="line">    cvWaitKey(<span class="number">0</span>);</span><br><span class="line">    cvReleaseImage(&amp;img);</span><br><span class="line">    cvDestroyWindow(<span class="string">"Example1"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p><code>cvLoadImage()</code>函数可读取绝大多数格式类型的图像文件，包括BMP,DIB,JPEG,JPE,PNG,PBM,TIFF等。该函数执行后返回一个指针，此指针指向一块为描述该图像文件的数据结构（IplImage）而分配的内存块。</p><h4 id="简单的变换"><a href="#简单的变换" class="headerlink" title="简单的变换"></a>简单的变换</h4><p>实现变换的方式：新建一个IplImage结构，然后对原图执行某种操作，将结构写入到新建的结构中，返回。<br>新建IplImage的方式：</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">IplImage* out = cvCreateImage(</span><br><span class="line">    cvSize(in-&gt;<span class="built_in">width</span> / <span class="number">2</span>, in-&gt;<span class="built_in">height</span> / <span class="number">2</span>),</span><br><span class="line">    in-&gt;depth,</span><br><span class="line">    in-&gt;nChannels);</span><br></pre></td></tr></table></figure><p>分配新的图像空间时是从旧的图像中读取所需的信息。在OpenCV中，所有的重要的数据都是以数据体的形式实现，并且以数据体指针的形式传递。</p>]]></content>
-    
-    <summary type="html">
-    
-      &lt;h4 id=&quot;OpenCV的结构和内容&quot;&gt;&lt;a href=&quot;#OpenCV的结构和内容&quot; class=&quot;headerlink&quot; title=&quot;OpenCV的结构和内容&quot;&gt;&lt;/a&gt;OpenCV的结构和内容&lt;/h4&gt;&lt;p&gt;OpenCV主体分为五个模块：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;CV模块：包含基本的图像处理函数和高级的计算机视觉算法。&lt;/li&gt;
-&lt;li&gt;ML库：机器学习库，包含一些基于统计的分类和聚类工具。&lt;/li&gt;
-&lt;li&gt;HighGUI：包含图像和视频输入/输出的函数。&lt;/li&gt;
-&lt;li&gt;CXCore：包含OpenCV的一些基本数据结构和相关函数。&lt;/li&gt;
-&lt;li&gt;CvAux模块：存放一些即将被淘汰的算法和函数。
     
     </summary>
     
