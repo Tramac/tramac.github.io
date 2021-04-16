@@ -142,6 +142,7 @@
     <title>Paper-reading List</title>
     <url>/2018/11/18/paper-reading-list/</url>
     <content><![CDATA[<h2 id="Video-Understanding"><a href="#Video-Understanding" class="headerlink" title="Video Understanding"></a>Video Understanding</h2><ul>
+<li><input disabled="" type="checkbox"> Continual learning in cross-modal retrieval-CVPR2021&lt;<a href="https://arxiv.org/pdf/2104.06806.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
 <li><input disabled="" type="checkbox"> Seeing Out of tHe bOx: End-to-End Pre-training for Vision-Language Representation Learning-CVPR2021&lt;[Paper]&gt;&lt;<a href="https://github.com/researchmm/soho" target="_blank" rel="noopener">Code</a>&gt;</li>
 <li><input disabled="" type="checkbox"> Visual Semantic Role Labeling for Video Understanding-CVPR2021&lt;<a href="https://arxiv.org/pdf/2104.00990.pdf" target="_blank" rel="noopener">Paper</a>&gt;&lt;<a href="https://github.com/TheShadow29/VidSitu" target="_blank" rel="noopener">Code-Pytorch</a>&gt;</li>
 <li><input disabled="" type="checkbox"> Perceiver: General Perception with Iterative Attention-2021&lt;<a href="https://arxiv.org/pdf/2103.03206.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
