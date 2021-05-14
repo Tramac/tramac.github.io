@@ -4,6 +4,7 @@
     <title>Paper-reading List</title>
     <url>/2018/11/18/paper-reading-list/</url>
     <content><![CDATA[<h2 id="Video-Understanding"><a href="#Video-Understanding" class="headerlink" title="Video Understanding"></a>Video Understanding</h2><ul>
+<li><input disabled="" type="checkbox"> ViLT: Vision-and-Language Transformer Without Convolution or Region Supervision-ICML2021&lt;<a href="https://arxiv.org/pdf/2102.03334.pdf" target="_blank" rel="noopener">Paper</a>&gt;&lt;<a href="https://github.com/dandelin/ViLT" target="_blank" rel="noopener">Code-PyTorch</a>&gt;</li>
 <li><input disabled="" type="checkbox"> Thinking Fast and Slow: Efficient Text-to-Visual Retrieval with Transformers-CVPR2021&lt;<a href="https://arxiv.org/pdf/2103.16553.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
 <li><input disabled="" type="checkbox"> TEACHTEXT: CrossModal Generalized Distillation for Text-Video Retrieval-2021&lt;<a href="https://arxiv.org/pdf/2104.08271.pdf" target="_blank" rel="noopener">Paper</a>&gt;&lt;<a href="https://github.com/albanie/collaborative-experts" target="_blank" rel="noopener">Code-PyTorch</a>&gt;</li>
 <li><input disabled="" type="checkbox"> Cross-Modal Retrieval Augmentation for Multi-Modal Classification-2021&lt;<a href="https://arxiv.org/pdf/2104.08108.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
