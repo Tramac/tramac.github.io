@@ -4,6 +4,7 @@
     <title>Paper-reading List</title>
     <url>/2018/11/18/paper-reading-list/</url>
     <content><![CDATA[<h2 id="Video-Understanding"><a href="#Video-Understanding" class="headerlink" title="Video Understanding"></a>Video Understanding</h2><ul>
+<li><input disabled="" type="checkbox"> A Survey of Transformers-Arxiv2021&lt;<a href="https://arxiv.org/pdf/2106.04554.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
 <li><input disabled="" type="checkbox"> Towards Efficient Cross-Modal Visual Textual Retrieval using Transformer-Encoder Deep Features-CBMI2021&lt;<a href="https://arxiv.org/pdf/2106.00358.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
 <li><input disabled="" type="checkbox"> ViLT: Vision-and-Language Transformer Without Convolution or Region Supervision-ICML2021&lt;<a href="https://arxiv.org/pdf/2102.03334.pdf" target="_blank" rel="noopener">Paper</a>&gt;&lt;<a href="https://github.com/dandelin/ViLT" target="_blank" rel="noopener">Code-PyTorch</a>&gt;</li>
 <li><input disabled="" type="checkbox"> Thinking Fast and Slow: Efficient Text-to-Visual Retrieval with Transformers-CVPR2021&lt;<a href="https://arxiv.org/pdf/2103.16553.pdf" target="_blank" rel="noopener">Paper</a>&gt;</li>
